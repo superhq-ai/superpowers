@@ -71,6 +71,29 @@ document.addEventListener('DOMContentLoaded', function () {
         observer.observe(card);
     });
 
+    // Video perspective scroll effect
+    const heroVideo = document.querySelector('.hero-video');
+    
+    if (heroVideo) {
+        window.addEventListener('scroll', function () {
+            const scrollY = window.scrollY;
+            const windowHeight = window.innerHeight;
+            const videoRect = heroVideo.getBoundingClientRect();
+            const videoCenter = videoRect.top + videoRect.height / 2;
+            const windowCenter = windowHeight / 2;
+            
+            // Calculate how far the video is from the center of the viewport
+            const distanceFromCenter = (videoCenter - windowCenter) / windowHeight;
+            
+            // Create perspective effect based on scroll position
+            const rotateX = distanceFromCenter * 15; // Max 15 degrees rotation
+            const rotateY = (scrollY / windowHeight) * 10; // Max 10 degrees rotation based on scroll
+            
+            // Apply the transform
+            heroVideo.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+    }
+
     // Overscroll gradient blocks effect
     const overscrollBlocks = document.querySelector('.overscroll-blocks');
     const gradientBlocks = document.querySelectorAll('.gradient-block');

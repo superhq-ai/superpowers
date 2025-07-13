@@ -173,6 +173,8 @@ body::before {
 .hero-video-container {
     margin: 40px auto;
     max-width: 800px;
+    perspective: 1000px;
+    transform-style: preserve-3d;
 }
 
 .hero-video {
@@ -180,6 +182,9 @@ body::before {
     height: auto;
     display: block;
     border-radius: 12px;
+    transform: rotateX(0deg) rotateY(0deg);
+    transition: transform 0.1s ease-out;
+    will-change: transform;
 }
 
 .cta-button {
