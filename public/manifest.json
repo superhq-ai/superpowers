@@ -1,0 +1,52 @@
+{
+    "manifest_version": 3,
+    "name": "Superpowers AI",
+    "description": "A sidebar which gives you superpowers",
+    "version": "1.0",
+    "permissions": [
+        "sidePanel",
+        "storage",
+        "contextMenus",
+        "activeTab",
+        "scripting",
+        "webNavigation"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_end"
+        }
+    ],
+    "icons": {
+        "64": "icons/icon64.png",
+        "128": "icons/icon128.png",
+        "256": "icons/icon256.png",
+        "512": "icons/icon512.png"
+    },
+    "side_panel": {
+        "default_path": "sidebar.html"
+    },
+    "action": {
+        "default_title": "Use Superpowers"
+    },
+    "commands": {
+        "open_sidebar": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+U"
+            },
+            "description": "Open the Superpowers sidebar"
+        }
+    }
+}
