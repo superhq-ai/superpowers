@@ -170,6 +170,18 @@ body::before {
     opacity: 0.7;
 }
 
+.hero-video-container {
+    margin: 40px auto;
+    max-width: 800px;
+}
+
+.hero-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+}
+
 .cta-button {
     display: inline-flex;
     align-items: center;
@@ -329,6 +341,16 @@ body::before {
     opacity: 0.7;
     line-height: 1.5;
     font-size: 0.9rem;
+}
+
+.capability-card code {
+    background: rgba(46, 111, 242, 0.1);
+    color: var(--primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.85em;
+    font-weight: 500;
 }
 
 .cta-section {
@@ -498,6 +520,12 @@ body::before {
     .hero {
         padding: 80px 0 48px;
         margin: 60px 16px 16px;
+    }
+    
+    .hero-video-container {
+        margin: 30px auto;
+        max-width: 100%;
+        border-radius: 12px;
     }
 
     .features-grid {
