@@ -1,135 +1,144 @@
 // Main JavaScript file for Superpowers website
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Smooth scrolling for navigation links
-    const navLinks = document.querySelectorAll('.nav a[href^="#"]');
+document.addEventListener("DOMContentLoaded", () => {
+	// Smooth scrolling for navigation links
+	const navLinks = document.querySelectorAll('.nav a[href^="#"]');
 
-    navLinks.forEach(link => {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
+	navLinks.forEach((link) => {
+		link.addEventListener("click", function (e) {
+			e.preventDefault();
 
-            const targetId = this.getAttribute('href');
-            const targetSection = document.querySelector(targetId);
+			const targetId = this.getAttribute("href");
+			const targetSection = document.querySelector(targetId);
 
-            if (targetSection) {
-                targetSection.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
+			if (targetSection) {
+				targetSection.scrollIntoView({
+					behavior: "smooth",
+					block: "start",
+				});
+			}
+		});
+	});
 
-    // Add hover effects to CTA buttons
-    const ctaButtons = document.querySelectorAll('.cta-button, .cta-button-secondary, .header-cta');
+	// Add hover effects to CTA buttons
+	const ctaButtons = document.querySelectorAll(
+		".cta-button, .cta-button-secondary, .header-cta",
+	);
 
-    ctaButtons.forEach(button => {
-        button.addEventListener('mouseenter', function () {
-            this.style.transform = 'translateY(-2px)';
-            this.style.transition = 'transform 0.2s ease';
-        });
+	ctaButtons.forEach((button) => {
+		button.addEventListener("mouseenter", function () {
+			this.style.transform = "translateY(-2px)";
+			this.style.transition = "transform 0.2s ease";
+		});
 
-        button.addEventListener('mouseleave', function () {
-            this.style.transform = 'translateY(0)';
-        });
-    });
+		button.addEventListener("mouseleave", function () {
+			this.style.transform = "translateY(0)";
+		});
+	});
 
-    // Add scroll effect to header
-    const header = document.querySelector('.header');
+	// Add scroll effect to header
+	const header = document.querySelector(".header");
 
-    window.addEventListener('scroll', function () {
-        if (window.scrollY > 100) {
-            header.style.background = 'rgba(255, 255, 255, 0.95)';
-            header.style.backdropFilter = 'blur(10px)';
-        } else {
-            header.style.background = 'var(--bg-white)';
-            header.style.backdropFilter = 'none';
-        }
-    });
+	window.addEventListener("scroll", () => {
+		if (window.scrollY > 100) {
+			header.style.background = "rgba(255, 255, 255, 0.95)";
+			header.style.backdropFilter = "blur(10px)";
+		} else {
+			header.style.background = "var(--bg-white)";
+			header.style.backdropFilter = "none";
+		}
+	});
 
-    // Add animation to feature cards on scroll
-    const featureCards = document.querySelectorAll('.feature-card, .capability-card');
+	// Add animation to feature cards on scroll
+	const featureCards = document.querySelectorAll(
+		".feature-card, .capability-card",
+	);
 
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
+	const observerOptions = {
+		threshold: 0.1,
+		rootMargin: "0px 0px -50px 0px",
+	};
 
-    const observer = new IntersectionObserver(function (entries) {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, observerOptions);
+	const observer = new IntersectionObserver((entries) => {
+		entries.forEach((entry) => {
+			if (entry.isIntersecting) {
+				entry.target.style.opacity = "1";
+				entry.target.style.transform = "translateY(0)";
+			}
+		});
+	}, observerOptions);
 
-    featureCards.forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        observer.observe(card);
-    });
+	featureCards.forEach((card) => {
+		card.style.opacity = "0";
+		card.style.transform = "translateY(20px)";
+		card.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+		observer.observe(card);
+	});
 
-    // Video perspective scroll effect
-    const heroVideo = document.querySelector('.hero-video');
-    
-    if (heroVideo) {
-        window.addEventListener('scroll', function () {
-            const scrollY = window.scrollY;
-            const windowHeight = window.innerHeight;
-            const videoRect = heroVideo.getBoundingClientRect();
-            const videoCenter = videoRect.top + videoRect.height / 2;
-            const windowCenter = windowHeight / 2;
-            
-            // Calculate how far the video is from the center of the viewport
-            const distanceFromCenter = (videoCenter - windowCenter) / windowHeight;
-            
-            // Create perspective effect based on scroll position
-            const rotateX = distanceFromCenter * 15; // Max 15 degrees rotation
-            const rotateY = (scrollY / windowHeight) * 10; // Max 10 degrees rotation based on scroll
-            
-            // Apply the transform
-            heroVideo.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        });
-    }
+	// Video perspective scroll effect
+	const heroVideo = document.querySelector(".hero-video");
 
-    // Overscroll gradient blocks effect
-    const overscrollBlocks = document.querySelector('.overscroll-blocks');
-    const gradientBlocks = document.querySelectorAll('.gradient-block');
-    let isOverscrolling = false;
-    let animationEndCount = 0;
+	if (heroVideo) {
+		window.addEventListener("scroll", () => {
+			const scrollY = window.scrollY;
+			const windowHeight = window.innerHeight;
+			const videoRect = heroVideo.getBoundingClientRect();
+			const videoCenter = videoRect.top + videoRect.height / 2;
+			const windowCenter = windowHeight / 2;
 
-    // Listen for transition end on all gradient blocks
-    gradientBlocks.forEach(block => {
-        block.addEventListener('transitionend', function () {
-            animationEndCount++;
-            // If all blocks have finished transitioning, hide the container
-            if (animationEndCount >= gradientBlocks.length) {
-                overscrollBlocks.classList.remove('active');
-                animationEndCount = 0;
-            }
-        });
-    });
+			// Calculate how far the video is from the center of the viewport
+			const distanceFromCenter = (videoCenter - windowCenter) / windowHeight;
 
-    // Reliable overscroll detection using scrollHeight calculation
-    window.addEventListener('scroll', function () {
-        const element = document.documentElement;
-        const isAtBottom = Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) < 1;
+			// Create perspective effect based on scroll position
+			const rotateX = distanceFromCenter * 15; // Max 15 degrees rotation
+			const rotateY = (scrollY / windowHeight) * 10; // Max 10 degrees rotation based on scroll
 
-        if (isAtBottom && !isOverscrolling) {
-            // Trigger overscroll effect
-            isOverscrolling = true;
-            animationEndCount = 0; // Reset counter
-            overscrollBlocks.classList.add('active');
-        } else if (!isAtBottom && isOverscrolling) {
-            // Hide overscroll effect when not at bottom
-            isOverscrolling = false;
-            overscrollBlocks.classList.remove('active');
-        }
-    });
+			// Apply the transform
+			heroVideo.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+		});
+	}
 
-    // Console welcome message
-    console.log('🚀 Superpowers website loaded successfully!');
-    console.log('💡 Check out our GitHub: https://github.com/superhq-ai/superpowers');
-}); 
+	// Overscroll gradient blocks effect
+	const overscrollBlocks = document.querySelector(".overscroll-blocks");
+	const gradientBlocks = document.querySelectorAll(".gradient-block");
+	let isOverscrolling = false;
+	let animationEndCount = 0;
+
+	// Listen for transition end on all gradient blocks
+	gradientBlocks.forEach((block) => {
+		block.addEventListener("transitionend", () => {
+			animationEndCount++;
+			// If all blocks have finished transitioning, hide the container
+			if (animationEndCount >= gradientBlocks.length) {
+				overscrollBlocks.classList.remove("active");
+				animationEndCount = 0;
+			}
+		});
+	});
+
+	// Reliable overscroll detection using scrollHeight calculation
+	window.addEventListener("scroll", () => {
+		const element = document.documentElement;
+		const isAtBottom =
+			Math.abs(
+				element.scrollHeight - element.scrollTop - element.clientHeight,
+			) < 1;
+
+		if (isAtBottom && !isOverscrolling) {
+			// Trigger overscroll effect
+			isOverscrolling = true;
+			animationEndCount = 0; // Reset counter
+			overscrollBlocks.classList.add("active");
+		} else if (!isAtBottom && isOverscrolling) {
+			// Hide overscroll effect when not at bottom
+			isOverscrolling = false;
+			overscrollBlocks.classList.remove("active");
+		}
+	});
+
+	// Console welcome message
+	console.log("🚀 Superpowers website loaded successfully!");
+	console.log(
+		"💡 Check out our GitHub: https://github.com/superhq-ai/superpowers",
+	);
+});

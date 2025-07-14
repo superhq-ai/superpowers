@@ -1,16 +1,16 @@
 import { RUNTIME_MESSAGES } from "../constants";
+import { streamLlm } from "../services/llm";
 import type { LLMMessage, UseLLMOptions } from "../types";
 import type {
+    AgentMessage,
+    AgentOptions,
+    AgentResponse,
     Tool,
     ToolCall,
     ToolResult,
-    AgentMessage,
-    AgentOptions,
-    AgentResponse
 } from "../types/agent";
-import { streamLlm } from "../services/llm";
-import { readStream } from "./utils";
 import { TOOL_CALL_JSON_CODE_BLOCK_REGEX } from "./regex";
+import { readStream } from "./utils";
 
 export class Agent {
     private tools: Tool[] = [];
@@ -22,7 +22,9 @@ export class Agent {
     private llmsNotFoundCache: Set<string> = new Set();
 
     constructor(options: AgentOptions = {}) {
-        this.systemPrompt = options.systemPrompt || "You are an AI assistant. Answer the user's questions to the best of your ability.";
+        this.systemPrompt =
+            options.systemPrompt ||
+            "You are an AI assistant. Answer the user's questions to the best of your ability.";
         this.maxIterations = options.maxIterations || 10;
         this.tools = options.tools || [];
         this.toolHandlers = options.toolHandlers || {};
@@ -37,7 +39,7 @@ export class Agent {
         let prompt = this.systemPrompt;
 
         if (this.tools.length > 0) {
-            const toolDefinitions = this.tools.map(tool => ({
+            const toolDefinitions = this.tools.map((tool) => ({
                 name: tool.name,
                 description: tool.description,
                 parameters: tool.parameters,
@@ -72,7 +74,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
     }
 
     private convertToLLMMessages(messages: AgentMessage[]): LLMMessage[] {
-        return messages.map(msg => {
+        return messages.map((msg) => {
             const llmMessage: LLMMessage = {
                 role: msg.role,
                 content: msg.content,
@@ -80,15 +82,15 @@ For example, to use a tool named "search" with a "query" argument, you would res
 
             if (msg.attachments) {
                 llmMessage.images = msg.attachments
-                    .filter(att => att.type === 'image')
-                    .map(att => att.data);
+                    .filter((att) => att.type === "image")
+                    .map((att) => att.data);
             }
 
             if (msg.toolCalls) {
                 llmMessage.tool_calls = msg.toolCalls;
             }
 
-            if (msg.role === 'tool' && msg.toolCallId) {
+            if (msg.role === "tool" && msg.toolCallId) {
                 llmMessage.tool_call_id = msg.toolCallId;
             }
 
@@ -102,13 +104,14 @@ For example, to use a tool named "search" with a "query" argument, you would res
             if (!jsonMatch) return { toolCalls: [] };
 
             const parsed = JSON.parse(jsonMatch[1]);
-            const toolCalls = parsed.tool_calls && Array.isArray(parsed.tool_calls)
-                ? parsed.tool_calls.map((tc: Partial<ToolCall>) => ({
-                    id: crypto.randomUUID(),
-                    name: tc.name,
-                    arguments: tc.arguments || {}
-                }))
-                : [];
+            const toolCalls =
+                parsed.tool_calls && Array.isArray(parsed.tool_calls)
+                    ? parsed.tool_calls.map((tc: Partial<ToolCall>) => ({
+                        id: crypto.randomUUID(),
+                        name: tc.name,
+                        arguments: tc.arguments || {},
+                    }))
+                    : [];
 
             return { toolCalls };
         } catch (error) {
@@ -128,7 +131,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
                         id: toolCall.id,
                         name: toolCall.name,
                         result: null,
-                        error: `Tool "${toolCall.name}" not found`
+                        error: `Tool "${toolCall.name}" not found`,
                     });
                     continue;
                 }
@@ -137,14 +140,14 @@ For example, to use a tool named "search" with a "query" argument, you would res
                 results.push({
                     id: toolCall.id,
                     name: toolCall.name,
-                    result
+                    result,
                 });
             } catch (error) {
                 results.push({
                     id: toolCall.id,
                     name: toolCall.name,
                     result: null,
-                    error: error instanceof Error ? error.message : "Unknown error"
+                    error: error instanceof Error ? error.message : "Unknown error",
                 });
             }
         }
@@ -156,14 +159,17 @@ For example, to use a tool named "search" with a "query" argument, you would res
         history: AgentMessage[],
         llmOptions: UseLLMOptions,
         onProgress?: (response: Partial<AgentResponse>) => void,
-        context?: any
+        context?: any,
     ): Promise<AgentResponse> {
-        if (context && context.url) {
+        if (context?.url) {
             this.systemPrompt += `\n\n## CURRENT PAGE CONTEXT\n\nYou are currently on tab ID ${context.id}, titled "${context.title}" (${context.url})\n`;
             const baseUrl = new URL(context.url).hostname;
             if (!this.llmsNotFoundCache.has(baseUrl)) {
-                const llmsData = await chrome.runtime.sendMessage({ type: RUNTIME_MESSAGES.FETCH_LLMS, data: { url: context.url } });
-                if (llmsData && llmsData.llms) {
+                const llmsData = await chrome.runtime.sendMessage({
+                    type: RUNTIME_MESSAGES.FETCH_LLMS,
+                    data: { url: context.url },
+                });
+                if (llmsData?.llms) {
                     this.systemPrompt += `\n\n## CONTEXT FROM WEBSITE\n\n${llmsData.llms}`;
                 } else {
                     this.llmsNotFoundCache.add(baseUrl);
@@ -175,8 +181,8 @@ For example, to use a tool named "search" with a "query" argument, you would res
 
         let iterations = 0;
         let lastResponse = "";
-        let allToolCalls: ToolCall[] = [];
-        let allToolResults: ToolResult[] = [];
+        const allToolCalls: ToolCall[] = [];
+        const allToolResults: ToolResult[] = [];
 
         const finalSystemPrompt = this.buildSystemPrompt();
 
@@ -187,7 +193,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
                     finished: true,
                     iterations,
                     toolCalls: allToolCalls,
-                    toolResults: allToolResults
+                    toolResults: allToolResults,
                 };
             }
             iterations++;
@@ -196,7 +202,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
             const llmMessages = this.convertToLLMMessages(messages);
             const finalLlmOptions = {
                 ...llmOptions,
-                systemPrompt: finalSystemPrompt
+                systemPrompt: finalSystemPrompt,
             };
 
             // Get LLM response
@@ -211,7 +217,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
                     onProgress?.({
                         message: chunk,
                         iterations,
-                        finished: false
+                        finished: false,
                     });
                 });
             } catch (error) {
@@ -221,12 +227,11 @@ For example, to use a tool named "search" with a "query" argument, you would res
                         finished: true,
                         iterations,
                         toolCalls: allToolCalls,
-                        toolResults: allToolResults
+                        toolResults: allToolResults,
                     };
                 }
                 throw error;
             }
-
 
             if (this.isStopped) {
                 return {
@@ -234,7 +239,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
                     finished: true,
                     iterations,
                     toolCalls: allToolCalls,
-                    toolResults: allToolResults
+                    toolResults: allToolResults,
                 };
             }
 
@@ -250,7 +255,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
                     toolCalls: allToolCalls,
                     toolResults: allToolResults,
                     iterations,
-                    finished: true
+                    finished: true,
                 };
             }
 
@@ -261,19 +266,21 @@ For example, to use a tool named "search" with a "query" argument, you would res
 
             // Add assistant message with tool calls
             messages.push({
+                id: crypto.randomUUID(),
                 role: "assistant",
                 content: response,
-                toolCalls
+                toolCalls,
             });
 
             // Add tool results to messages
             for (const result of toolResults) {
                 const toolMessage: AgentMessage = {
+                    id: crypto.randomUUID(),
                     role: "tool",
                     toolCallId: result.id,
                     content: result.error
                         ? `Tool "${result.name}" failed: ${result.error}`
-                        : JSON.stringify(result.result)
+                        : JSON.stringify(result.result),
                 };
                 messages.push(toolMessage);
             }
@@ -284,9 +291,8 @@ For example, to use a tool named "search" with a "query" argument, you would res
                 toolCalls: allToolCalls,
                 toolResults: allToolResults,
                 iterations,
-                finished: false
+                finished: false,
             });
-
         }
 
         // Max iterations reached
@@ -295,7 +301,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
             toolCalls: allToolCalls,
             toolResults: allToolResults,
             iterations,
-            finished: false
+            finished: false,
         };
     }
 
@@ -305,5 +311,4 @@ For example, to use a tool named "search" with a "query" argument, you would res
             this.stream.cancel();
         }
     }
-
 }

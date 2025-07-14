@@ -1,15 +1,15 @@
-import React from 'react';
+import type React from "react";
 
 type Props = {
-    children: React.ReactNode;
+	children: React.ReactNode;
 };
 
 const ViewContainer = ({ children }: Props) => {
-    return (
-        <div className="flex flex-col flex-1 overflow-y-auto relative z-10">
-            {children}
-        </div>
-    );
+	return (
+		<div className="flex flex-col flex-1 overflow-y-auto relative z-10">
+			{children}
+		</div>
+	);
 };
 
 export default ViewContainer;

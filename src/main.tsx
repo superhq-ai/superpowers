@@ -1,11 +1,12 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-import './lib/sidebar.ts'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.tsx";
+import "./lib/sidebar.ts";
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// biome-ignore lint/style/noNonNullAssertion: The root element is guaranteed to exist in the HTML.
+createRoot(document.getElementById("root")!).render(
+	<StrictMode>
+		<App />
+	</StrictMode>,
+);
