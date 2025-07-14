@@ -33,6 +33,8 @@ const fetchLlmsFiles = async (url: string) => {
     }
 };
 
+const sidebarState = new Map<number, boolean>();
+
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
         id: "openSidebar",
@@ -48,7 +50,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         typeof tab.id === "number" &&
         typeof tab.windowId === "number"
     ) {
-        chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
+        toggleSidebar(tab.id, tab.windowId);
     }
 });
 
@@ -105,7 +107,14 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
-    const { type, data } = request;
+    const { type, data, tabId } = request;
+
+    if (type === 'SIDEBAR_LOADED' && tabId) {
+        sidebarState.set(tabId, true);
+        sendResponse({ success: true });
+        return true;
+    }
+    
     const action = browserActions[type as keyof typeof browserActions];
 
     if (action) {
@@ -129,8 +138,28 @@ chrome.commands.onCommand.addListener((command) => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             const tab = tabs[0];
             if (tab?.id && tab?.windowId) {
-                chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
+                toggleSidebar(tab.id, tab.windowId);
             }
         });
     }
+});
+
+async function toggleSidebar(tabId: number, windowId: number) {
+    const isOpen = sidebarState.get(tabId) || false;
+    
+    if (isOpen) {
+        try {
+            await chrome.runtime.sendMessage({ type: 'CLOSE_SIDEBAR', tabId });
+        } catch (error) {
+            console.log('I guess the sidebar is already closed');
+        }
+        sidebarState.set(tabId, false);
+    } else {
+        chrome.sidePanel.open({ tabId, windowId });
+        sidebarState.set(tabId, true);
+    }
+}
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+    sidebarState.delete(tabId);
 });
