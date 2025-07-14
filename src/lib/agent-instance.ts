@@ -1,6 +1,6 @@
 import { Agent } from "./agent";
-import { browserTools } from "./browser-tools";
 import { browserHandlers } from "./browser-handlers";
+import { browserTools } from "./browser-tools";
 import { SUPERPOWERS_SYSTEM_PROMPT } from "./system-prompts";
 
 export const agent = new Agent({

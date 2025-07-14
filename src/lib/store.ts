@@ -1,10 +1,10 @@
+import { del, get, set } from "idb-keyval";
 import { create, type StateCreator } from "zustand";
 import {
-	persist,
 	createJSONStorage,
+	persist,
 	type StateStorage,
 } from "zustand/middleware";
-import { get, set, del } from "idb-keyval";
 import type { AgentMessage as Message } from "../types/agent";
 
 export const indexDBStorage: StateStorage = {

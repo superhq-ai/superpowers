@@ -1,4 +1,4 @@
-import type { ToolCall, ToolResult, Attachment } from "./agent";
+import type { Attachment, ToolCall, ToolResult } from "./agent";
 
 export type Message = {
 	id: number | string;
@@ -39,16 +39,16 @@ export interface BackgroundRequest {
 
 export type BackgroundResponse =
 	| {
-			type: "stream";
-			content: string;
-	  }
+		type: "stream";
+		content: string;
+	}
 	| {
-			type: "error";
-			error: string;
-	  }
+		type: "error";
+		error: string;
+	}
 	| {
-			type: "done";
-	  };
+		type: "done";
+	};
 
 export interface AppSettings {
 	apiKeys: LLMApiKeys;

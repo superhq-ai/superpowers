@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { readStream } from "../lib/utils";
 import { streamLlm } from "../services/llm";
 import type { AppSettings, LLMProvider } from "../types";
-import { readStream } from "../lib/utils";
 
 export function useTestLlm() {
 	const [testResponse, setTestResponse] = useState("");

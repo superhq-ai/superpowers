@@ -349,11 +349,11 @@ function processTable(table: HTMLTableElement): string {
 		const cellTexts = cells.map((cell) => cell.textContent?.trim() || "");
 
 		if (cellTexts.some((text) => text.length > 0)) {
-			tableRows.push("| " + cellTexts.join(" | ") + " |");
+			tableRows.push(`| ${cellTexts.join(" | ")} |`);
 
 			// Add separator after first row if it contains th elements
 			if (rowIndex === 0 && row.querySelector("th")) {
-				tableRows.push("| " + cellTexts.map(() => "---").join(" | ") + " |");
+				tableRows.push(`| ${cellTexts.map(() => "---").join(" | ")} |`);
 			}
 		}
 	});
