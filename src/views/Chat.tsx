@@ -32,6 +32,16 @@ const Chat = () => {
             // Clean up the message content by removing the raw tool call JSON
             const finalMessage = response.message.replace(TOOL_CALL_JSON_CODE_BLOCK_REGEX, '').trim();
             updateLastMessage({ content: finalMessage, toolCalls: response.toolCalls, toolResults: response.toolResults });
+
+            if (response.toolResults && response.toolResults.length > 0) { // here iam persisting the tool results so they are part of the next LLM context
+                response.toolResults.forEach((tr) => {
+                    addMessage({
+                        role: 'tool',
+                        content: tr.error ? `Tool \"${tr.name}\" failed: ${tr.error}` : JSON.stringify(tr.result),
+                        toolCallId: tr.id,
+                    } as any);
+                });
+            }
         }
     });
     const messagesEndRef = useRef<HTMLDivElement | null>(null);

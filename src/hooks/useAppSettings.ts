@@ -4,6 +4,7 @@ import { deepEqual } from "../lib/utils";
 
 const defaultModels: Record<LLMProvider, string> = {
     gemini: "gemini-2.0-flash",
+    openai: "gpt-4o"
 };
 
 const defaults: AppSettings = {

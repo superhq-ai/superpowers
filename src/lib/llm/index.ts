@@ -1,5 +1,6 @@
 import type { LLMMessage, LLMProvider, UseLLMOptions } from "../../types";
 import { GeminiProvider } from "./gemini.js";
+import { OpenAIProvider } from "./openai.js";
 
 export interface LLM {
     generate(
@@ -19,6 +20,8 @@ export function getLlmProvider(provider: LLMProvider): LLMProviderConstructor {
     switch (provider) {
         case "gemini":
             return GeminiProvider;
+        case "openai":
+            return OpenAIProvider;
         default:
             throw new Error(`Unknown LLM provider: ${provider}`);
     }

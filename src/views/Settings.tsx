@@ -33,6 +33,7 @@ const Settings = () => {
 
     const providerOptions = [
         { value: "gemini", label: "Gemini" },
+        { value: "openai", label: "OpenAI" },
     ];
 
     useEffect(() => {
