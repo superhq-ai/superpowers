@@ -33,7 +33,7 @@ const Select = ({
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (!options) return;
-		
+
 		if (e.key === "Enter" || e.key === " ") {
 			e.preventDefault();
 			if (isOpen && focusedIndex >= 0) {
@@ -86,7 +86,7 @@ const Select = ({
 		? options.find((option) => option.value === value)
 		: undefined;
 
-	const selectedIndex = selectedOption 
+	const selectedIndex = selectedOption
 		? options.findIndex((option) => option.value === value)
 		: -1;
 
@@ -139,9 +139,7 @@ const Select = ({
 							id={`option-${index}`}
 							className={`w-full text-left px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center select-none ${
 								index === focusedIndex ? "bg-gray-100" : ""
-							} ${
-								index === selectedIndex ? "bg-blue-50" : ""
-							}`}
+							} ${index === selectedIndex ? "bg-blue-50" : ""}`}
 							onClick={() => handleSelect(option.value)}
 							onMouseEnter={() => setFocusedIndex(index)}
 							onKeyDown={(e) => {

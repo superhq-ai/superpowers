@@ -33,9 +33,7 @@ export function listenForConnections() {
 				const apiKey = settings.apiKeys[settings.selectedProvider];
 
 				if (!apiKey) {
-					throw new ConfigError(
-						"API key not found for the selected provider.",
-					);
+					throw new ConfigError("API key not found for the selected provider.");
 				}
 
 				const llm = getLlm(settings.selectedProvider);

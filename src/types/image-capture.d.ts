@@ -8,5 +8,5 @@ interface ImageCapture {
 
 declare var ImageCapture: {
 	prototype: ImageCapture;
-	new(videoTrack: MediaStreamTrack): ImageCapture;
+	new (videoTrack: MediaStreamTrack): ImageCapture;
 };
