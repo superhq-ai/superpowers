@@ -1,3 +1,4 @@
+import { RUNTIME_MESSAGES } from "../constants";
 import type { LLMMessage, UseLLMOptions } from "../types";
 import type {
     Tool,
@@ -161,7 +162,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
             this.systemPrompt += `\n\n## CURRENT PAGE CONTEXT\n\nYou are currently on tab ID ${context.id}, titled "${context.title}" (${context.url})\n`;
             const baseUrl = new URL(context.url).hostname;
             if (!this.llmsNotFoundCache.has(baseUrl)) {
-                const llmsData = await chrome.runtime.sendMessage({ type: 'fetchLlms', data: { url: context.url } });
+                const llmsData = await chrome.runtime.sendMessage({ type: RUNTIME_MESSAGES.FETCH_LLMS, data: { url: context.url } });
                 if (llmsData && llmsData.llms) {
                     this.systemPrompt += `\n\n## CONTEXT FROM WEBSITE\n\n${llmsData.llms}`;
                 } else {

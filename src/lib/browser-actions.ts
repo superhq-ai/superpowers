@@ -1,4 +1,6 @@
-const sendMessageToContent = (type: string, data?: any): Promise<any> => {
+import type { TabInfo, MessageType, SelectorArgs, FillInputArgs, NavigateToUrlArgs, SearchGoogleArgs, HistoryNavArgs, CurrentTabResult, ClickElementResult, FillInputResult, PageContentResult, ScrollToElementResult } from "../types/browser";
+
+const sendMessageToContent = <T>(type: MessageType, data?: object): Promise<T> => {
     return new Promise((resolve, reject) => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             const tabId = tabs[0]?.id;
@@ -12,31 +14,30 @@ const sendMessageToContent = (type: string, data?: any): Promise<any> => {
                 if (response?.error) {
                     return reject(new Error(response.error));
                 }
-                resolve(response);
+                resolve(response as T);
             });
         });
     });
 };
 
 export const browserActions = {
-    getCurrentTab: async (): Promise<any> => {
-        const tab = await sendMessageToContent('getCurrentTab');
-        return tab;
+    getCurrentTab: (): Promise<CurrentTabResult> => {
+        return sendMessageToContent<CurrentTabResult>('getCurrentTab');
     },
 
-    clickElement: async (args: { selector: string }): Promise<string> => {
-        return sendMessageToContent('clickElement', args);
+    clickElement: (args: SelectorArgs): Promise<ClickElementResult> => {
+        return sendMessageToContent<ClickElementResult>('clickElement', args);
     },
 
-    fillInput: async (args: { selector: string; value: string }): Promise<string> => {
-        return sendMessageToContent('fillInput', args);
+    fillInput: (args: FillInputArgs): Promise<FillInputResult> => {
+        return sendMessageToContent<FillInputResult>('fillInput', args);
     },
 
-    getPageContent: async (args: { selector?: string }): Promise<string> => {
-        return sendMessageToContent('getPageContent', args);
+    getPageContent: (args: SelectorArgs): Promise<PageContentResult> => {
+        return sendMessageToContent<PageContentResult>('getPageContent', args);
     },
 
-    navigateToUrl: async (args: { url: string }): Promise<string> => {
+    navigateToUrl: (args: NavigateToUrlArgs): Promise<string> => {
         return new Promise((resolve, reject) => {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 const tabId = tabs[0]?.id;
@@ -47,7 +48,6 @@ export const browserActions = {
                     url = `https://${url}`;
                 }
 
-                // Create a one-time webNavigation listener
                 const handleCompleted = (details: chrome.webNavigation.WebNavigationFramedCallbackDetails) => {
                     if (details.tabId === tabId && details.frameId === 0) {
                         chrome.webNavigation.onCompleted.removeListener(handleCompleted);
@@ -71,18 +71,16 @@ export const browserActions = {
         });
     },
 
-    searchGoogle: async (args: { query: string }): Promise<string> => {
+    searchGoogle: (args: SearchGoogleArgs): Promise<string> => {
         const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(args.query)}`;
         return browserActions.navigateToUrl({ url: searchUrl });
     },
 
-
-
-    scrollToElement: async (args: { selector: string }): Promise<string> => {
-        return sendMessageToContent('scrollToElement', args);
+    scrollToElement: (args: SelectorArgs): Promise<ScrollToElementResult> => {
+        return sendMessageToContent<ScrollToElementResult>('scrollToElement', args);
     },
 
-    queryTabs: async (args: { query: string }): Promise<chrome.tabs.Tab[]> => {
+    queryTabs: (args: { query: string }): Promise<chrome.tabs.Tab[]> => {
         return new Promise((resolve) => {
             chrome.tabs.query({ title: `*${args.query}*` }, (tabs) => {
                 resolve(tabs);
@@ -90,7 +88,7 @@ export const browserActions = {
         });
     },
 
-    switchToTab: async (args: { tabId: number }): Promise<string> => {
+    switchToTab: (args: { tabId: number }): Promise<string> => {
         return new Promise((resolve) => {
             chrome.tabs.update(args.tabId, { active: true }, () => {
                 resolve(`Switched to tab ${args.tabId}`);
@@ -98,14 +96,15 @@ export const browserActions = {
         });
     },
 
-    listTabs: async (): Promise<{ id: number, title: string, url: string }[]> => {
+    listTabs: (): Promise<TabInfo[]> => {
         return new Promise((resolve) => {
             chrome.tabs.query({}, (tabs) => {
                 resolve(tabs.map(tab => ({ id: tab.id || 0, title: tab.title || '', url: tab.url || '' })));
             });
         });
     },
-    historyNav: async (args: { action: 'back' | 'forward' }): Promise<string> => {
+
+    historyNav: (args: HistoryNavArgs): Promise<string> => {
         return new Promise((resolve) => {
             if (args.action === 'back') {
                 chrome.tabs.goBack();

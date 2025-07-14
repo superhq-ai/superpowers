@@ -65,3 +65,16 @@ export type SearchGoogleResult = {
     success: true;
     message: string;
 } | { error: string };
+
+export interface TabInfo {
+    id: number;
+    title: string;
+    url: string;
+}
+
+export type ScrollToElementResult = {
+    success: true;
+    message: string;
+} | { error: string };
+
+export type BrowserActionResult = string | chrome.tabs.Tab[] | TabInfo[] | PageContentResult | ClickElementResult | FillInputResult | CurrentTabResult | ScrollToElementResult;
