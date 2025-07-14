@@ -68,7 +68,7 @@ export class SidebarManager {
             try {
                 await chrome.runtime.sendMessage({ type: SIDEBAR_MESSAGES.CLOSE });
             } catch (error) {
-                console.log('I guess the sidebar is already closed');
+                console.log('I guess the sidebar is already closed \\_(ツ)_/ ');
             }
             this.sidebarState.set(tabId, false);
         } else {
