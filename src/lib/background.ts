@@ -17,7 +17,6 @@ const fetchLlmsFiles = async (url: string) => {
         ]);
 
         if (!llmsResponse.ok && !llmsFullResponse.ok) {
-            console.log("No llms files found for this site.");
             return null;
         }
 
@@ -35,7 +34,6 @@ const fetchLlmsFiles = async (url: string) => {
 };
 
 chrome.runtime.onInstalled.addListener(() => {
-    console.log("You have superpowers now!");
     chrome.contextMenus.create({
         id: "openSidebar",
         title: "Use Superpowers",
@@ -98,7 +96,6 @@ chrome.runtime.onConnect.addListener((port) => {
             port.postMessage({ type: "done" });
         } catch (error) {
             if ((error as Error).name === 'AbortError') {
-                console.log('LLM request aborted.');
                 return;
             }
             const err = error as Error;

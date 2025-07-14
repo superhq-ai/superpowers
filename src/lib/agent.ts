@@ -161,9 +161,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
             this.systemPrompt += `\n\n## CURRENT PAGE CONTEXT\n\nYou are currently on tab ID ${context.id}, titled "${context.title}" (${context.url})\n`;
             const baseUrl = new URL(context.url).hostname;
             if (!this.llmsNotFoundCache.has(baseUrl)) {
-                console.log(`[Agent] Checking for llms.txt for ${baseUrl}`);
                 const llmsData = await chrome.runtime.sendMessage({ type: 'fetchLlms', data: { url: context.url } });
-                console.log('[Agent] llmsData received:', llmsData);
                 if (llmsData && llmsData.llms) {
                     this.systemPrompt += `\n\n## CONTEXT FROM WEBSITE\n\n${llmsData.llms}`;
                 } else {
@@ -180,7 +178,6 @@ For example, to use a tool named "search" with a "query" argument, you would res
         let allToolResults: ToolResult[] = [];
 
         const finalSystemPrompt = this.buildSystemPrompt();
-        console.log("System Prompt:", finalSystemPrompt);
 
         while (iterations < this.maxIterations) {
             if (this.isStopped) {
@@ -243,9 +240,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
             lastResponse = response;
 
             // Check for tool calls
-            console.log("[Agent] Raw LLM Response:", response);
             const { toolCalls } = this.parseLlmOutput(response);
-            console.log("[Agent] Parsed Tool Calls:", toolCalls);
 
             if (toolCalls.length === 0) {
                 // No tool calls, we're done
@@ -260,10 +255,8 @@ For example, to use a tool named "search" with a "query" argument, you would res
 
             // Execute tool calls
             allToolCalls.push(...toolCalls);
-            console.log("[Agent] Executing Tool Calls:", toolCalls);
             const toolResults = await this.executeToolCalls(toolCalls);
             allToolResults.push(...toolResults);
-            console.log("[Agent] Tool Results:", toolResults);
 
             // Add assistant message with tool calls
             messages.push({
@@ -282,7 +275,6 @@ For example, to use a tool named "search" with a "query" argument, you would res
                         : JSON.stringify(result.result)
                 };
                 messages.push(toolMessage);
-                console.log("[Agent] Added Tool Message to History:", toolMessage);
             }
 
             // Notify progress

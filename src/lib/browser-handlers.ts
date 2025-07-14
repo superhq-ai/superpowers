@@ -23,7 +23,6 @@ export const browserHandlers = {
     searchGoogle: (args: { query: string }) => sendMessageToBackground({ type: 'searchGoogle', data: args }),
     queryTabs: (args: { query: string }) => sendMessageToBackground({ type: 'queryTabs', data: args }),
     switchToTab: (args: { tabId: number }) => {
-        console.log('Switching to tab with args:', args);
         return sendMessageToBackground({ type: 'switchToTab', data: args });
     },
     listTabs: () => sendMessageToBackground({ type: 'listTabs' }),

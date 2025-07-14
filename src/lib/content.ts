@@ -7,8 +7,6 @@ import type {
     SelectorArgs,
 } from '../types/browser';
 
-console.log("[content.js] Loaded");
-
 import domToMarkdown from './dom-to-markdown';
 
 const getPageContent = (args?: SelectorArgs): PageContentResult => {
@@ -111,7 +109,6 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
             result = { error: `Unknown action: ${type}` };
     }
 
-    console.log('Sending response from content script:', result);
     sendResponse(result);
     return true;
 });

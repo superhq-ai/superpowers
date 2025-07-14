@@ -1,21 +1,17 @@
 const sendMessageToContent = (type: string, data?: any): Promise<any> => {
-    console.log('Sending message to content script:', type, data);
     return new Promise((resolve, reject) => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             const tabId = tabs[0]?.id;
-            console.log('Active tab ID:', tabId);
             if (!tabId) {
                 return reject(new Error("No active tab found"));
             }
             chrome.tabs.sendMessage(tabId, { type, data }, (response) => {
-                console.log('Response from content script:', response);
                 if (chrome.runtime.lastError) {
                     return reject(chrome.runtime.lastError);
                 }
                 if (response?.error) {
                     return reject(new Error(response.error));
                 }
-                console.log('Response from content script:', response);
                 resolve(response);
             });
         });
@@ -24,9 +20,7 @@ const sendMessageToContent = (type: string, data?: any): Promise<any> => {
 
 export const browserActions = {
     getCurrentTab: async (): Promise<any> => {
-        console.log('Getting current tab');
         const tab = await sendMessageToContent('getCurrentTab');
-        console.log('Current tab:', tab);
         return tab;
     },
 
