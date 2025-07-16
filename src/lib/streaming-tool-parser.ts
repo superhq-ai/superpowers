@@ -21,15 +21,15 @@ export class StreamingToolParser {
 	 */
 	parse(chunk: string): ToolParseResult {
 		this.buffer += chunk;
-		
+
 		// If we are not in a tool block, look for the start
 		if (!this.inToolBlock) {
 			return this.findToolBlockStart();
 		}
-		
+
 		// If we are in a tool block, the new chunk is part of the tool code
 		this.toolCodeContent += chunk;
-		
+
 		// If we are in a tool block, look for the end
 		return this.findToolBlockEnd();
 	}
@@ -60,50 +60,50 @@ export class StreamingToolParser {
 
 	private findToolBlockStart(): ToolParseResult {
 		const match = this.buffer.match(this.blockStartPattern);
-		
+
 		if (!match) {
 			return {
 				toolCalls: [],
 				isComplete: false,
-				hasToolBlock: false
+				hasToolBlock: false,
 			};
 		}
 
 		// Found the start of a tool block
 		this.inToolBlock = true;
 		const startIndex = match.index! + match[0].length;
-		
+
 		// Extract content after the opening block
 		this.toolCodeContent = this.buffer.slice(startIndex);
-		
+
 		// Check if the block is already complete in the buffer
 		return this.findToolBlockEnd();
 	}
 
 	private findToolBlockEnd(): ToolParseResult {
 		const endMatch = this.toolCodeContent.match(this.blockEndPattern);
-		
+
 		if (!endMatch) {
 			// Block not yet complete
 			return {
 				toolCalls: [],
 				isComplete: false,
-				hasToolBlock: true
+				hasToolBlock: true,
 			};
 		}
 
 		// Found the end of the tool block
 		const jsonContent = this.toolCodeContent.slice(0, endMatch.index!);
 		this.inToolBlock = false;
-		
+
 		// Parse the JSON content
 		const toolCalls = this.parseToolCalls(jsonContent);
 		this.completedToolCalls = toolCalls;
-		
+
 		return {
 			toolCalls,
 			isComplete: true,
-			hasToolBlock: true
+			hasToolBlock: true,
 		};
 	}
 
@@ -115,7 +115,7 @@ export class StreamingToolParser {
 			}
 
 			const parsed = JSON.parse(trimmedContent);
-			
+
 			if (!parsed.tool_calls || !Array.isArray(parsed.tool_calls)) {
 				return [];
 			}
@@ -172,7 +172,7 @@ export class StreamingToolParser {
 			inToolBlock: this.inToolBlock,
 			bufferLength: this.buffer.length,
 			toolContentLength: this.toolCodeContent.length,
-			hasPartialContent: this.inToolBlock && this.toolCodeContent.length > 0
+			hasPartialContent: this.inToolBlock && this.toolCodeContent.length > 0,
 		};
 	}
 
@@ -180,14 +180,14 @@ export class StreamingToolParser {
 	 * Extract content with tool blocks removed
 	 */
 	getContentWithoutToolBlocks(): string {
-		return this.buffer.replace(/```tool_code.*?\n```/gs, '').trim();
+		return this.buffer.replace(/```tool_code.*?\n```/gs, "").trim();
 	}
 
 	/**
 	 * Extract all content that comes after a completed tool block
 	 */
 	getContentAfterToolBlock(): string {
-		if (!this.inToolBlock && this.buffer.includes('```tool_code')) {
+		if (!this.inToolBlock && this.buffer.includes("```tool_code")) {
 			const toolBlockMatch = this.buffer.match(/```tool_code.*?\n```/s);
 			if (toolBlockMatch) {
 				const endIndex = toolBlockMatch.index! + toolBlockMatch[0].length;

@@ -1,10 +1,10 @@
 import { ArrowUp, Image, Scan, X } from "lucide-react";
 import { MAX_IMAGES } from "../constants";
 import { useAppSettings } from "../hooks/useAppSettings";
-import useAutosizeTextArea from "../hooks/useAutoResizeTextarea";
 import usePastedFiles, { AcceptedFileType } from "../hooks/usePastedFiles";
 import useScreenshot from "../hooks/useScreenshot";
 import { ModelSelect } from "./ModelSelect";
+import { useRef } from "react";
 
 const PromptBox = ({
 	prompt,
@@ -34,12 +34,20 @@ const PromptBox = ({
 		acceptTypes: [AcceptedFileType.Image],
 	});
 
-	const autoResizeRef = useAutosizeTextArea(prompt);
+	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 	const { takeScreenshot } = useScreenshot();
 
 	const submit = () => {
 		onSubmit(images.map((img) => img.file));
 		resetImages();
+	};
+
+	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		setPrompt(e.target.value);
+		if (textareaRef.current) {
+			textareaRef.current.style.height = "auto";
+			textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+		}
 	};
 
 	const handleScreenshot = async () => {
@@ -100,9 +108,9 @@ const PromptBox = ({
 					</div>
 				)}
 				<textarea
-					ref={autoResizeRef}
+					ref={textareaRef}
 					value={prompt}
-					onChange={(e) => setPrompt(e.target.value)}
+					onChange={handleChange}
 					onKeyDown={handleKeyDown}
 					onPaste={handlePaste}
 					placeholder="Ask me anything or give me a task to work on."

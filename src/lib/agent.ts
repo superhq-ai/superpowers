@@ -97,7 +97,6 @@ For example, to use a tool named "search" with a "query" argument, you would res
 		});
 	}
 
-
 	private async executeToolCalls(toolCalls: ToolCall[]): Promise<ToolResult[]> {
 		const results: ToolResult[] = [];
 
