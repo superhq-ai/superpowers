@@ -1,6 +1,10 @@
-const SIDEBAR_MESSAGES = {
+export const SIDEBAR_MESSAGES = {
 	CLOSE: "CLOSE_SIDEBAR",
+};
+
+export const SIDEBAR_STATE = {
 	LOADED: "SIDEBAR_LOADED",
+	CLOSED: "SIDEBAR_CLOSED",
 };
 
 interface SidebarMessage {
@@ -55,8 +59,13 @@ export class SidebarManager {
 		request: SidebarMessage,
 		sendResponse: (response: SidebarResponse) => void,
 	): boolean {
-		if (request.type === SIDEBAR_MESSAGES.LOADED && request.tabId) {
+		if (request.type === SIDEBAR_STATE.LOADED && request.tabId) {
 			this.sidebarState.set(request.tabId, true);
+			sendResponse({ success: true });
+			return true;
+		}
+		if (request.type === SIDEBAR_STATE.CLOSED && request.tabId) {
+			this.sidebarState.set(request.tabId, false);
 			sendResponse({ success: true });
 			return true;
 		}
@@ -68,15 +77,18 @@ export class SidebarManager {
 		const isOpen = this.sidebarState.get(tabId) || false;
 
 		if (isOpen) {
-			try {
-				await chrome.runtime.sendMessage({ type: SIDEBAR_MESSAGES.CLOSE });
-			} catch {
-				console.log("I guess the sidebar is already closed \\_(ツ)_/ ");
-			}
-			this.sidebarState.set(tabId, false);
+			chrome.runtime.sendMessage({ type: SIDEBAR_MESSAGES.CLOSE }).then(() => {
+				this.sidebarState.set(tabId, false);
+			});
 		} else {
 			await chrome.sidePanel.open({ tabId, windowId });
 			this.sidebarState.set(tabId, true);
+		}
+	}
+
+	public async toggle(tab: chrome.tabs.Tab) {
+		if (tab?.id && tab?.windowId) {
+			await this.toggleSidebar(tab.id, tab.windowId);
 		}
 	}
 }
