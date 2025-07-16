@@ -114,7 +114,7 @@ const PromptBox = ({
 					onKeyDown={handleKeyDown}
 					onPaste={handlePaste}
 					placeholder="Ask me anything or give me a task to work on."
-					className="w-full min-h-6 max-h-24 bg-transparent border-none focus:outline-none resize-none placeholder-gray-500 text-base overflow-y-hidden leading-normal"
+					className="w-full min-h-6 max-h-24 bg-transparent border-none focus:outline-none resize-none placeholder-gray-500 text-base leading-normal"
 					style={{ lineHeight: "1.5" }}
 				/>
 				<div className="flex gap-2 justify-between mt-2">
