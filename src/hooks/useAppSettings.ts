@@ -17,6 +17,7 @@ export function useAppSettings() {
 	const [settings, setSettings] = useState<AppSettings>(defaults);
 
 	useEffect(() => {
+		if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync) {
 		chrome.storage.sync.get(["settings"], (result) => {
 			if (result.settings) {
 				const loadedSettings = result.settings as AppSettings;
@@ -29,6 +30,9 @@ export function useAppSettings() {
 				setSettings((prevSettings) => ({ ...prevSettings, ...loadedSettings }));
 			}
 		});
+		} else {
+  			console.warn("Chrome storage.sync is not available.");
+		}
 	}, []);
 
 	const handleSetSettings = useCallback((newSettings: Partial<AppSettings>) => {
