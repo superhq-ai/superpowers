@@ -42,3 +42,7 @@ function handleRuntimeMessage(
 }
 
 chrome.runtime.onMessage.addListener(handleRuntimeMessage);
+
+chrome.action.onClicked.addListener((tab) => {
+	sidebarManager.toggle(tab);
+});
