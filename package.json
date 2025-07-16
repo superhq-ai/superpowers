@@ -10,7 +10,8 @@
 		"lint": "pnpm exec biome lint --write",
 		"format": "pnpm exec biome format --write",
 		"check": "pnpm exec biome check --write",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"prepare": "husky"
 	},
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.56.0",
@@ -34,6 +35,7 @@
 		"@types/react": "^19.1.8",
 		"@types/react-dom": "^19.1.6",
 		"@vitejs/plugin-react": "^4.6.0",
+		"husky": "^9.1.7",
 		"typescript": "~5.8.3",
 		"vite": "^7.0.4"
 	}
