@@ -55,4 +55,5 @@ export interface AppSettings {
 	selectedProvider: LLMProvider;
 	model: string;
 	defaultProvider?: LLMProvider;
+	developerMode?: boolean;
 }

@@ -9,8 +9,7 @@ import type {
 	ToolCall,
 	ToolResult,
 } from "../types/agent";
-import { TOOL_CALL_JSON_CODE_BLOCK_REGEX } from "./regex";
-import { readStream } from "./utils";
+import { StreamingToolParser } from "./streaming-tool-parser";
 
 export class Agent {
 	private tools: Tool[] = [];
@@ -98,27 +97,6 @@ For example, to use a tool named "search" with a "query" argument, you would res
 		});
 	}
 
-	private parseLlmOutput(content: string): { toolCalls: ToolCall[] } {
-		try {
-			const jsonMatch = content.match(TOOL_CALL_JSON_CODE_BLOCK_REGEX);
-			if (!jsonMatch) return { toolCalls: [] };
-
-			const parsed = JSON.parse(jsonMatch[1]);
-			const toolCalls =
-				parsed.tool_calls && Array.isArray(parsed.tool_calls)
-					? parsed.tool_calls.map((tc: Partial<ToolCall>) => ({
-							id: crypto.randomUUID(),
-							name: tc.name,
-							arguments: tc.arguments || {},
-						}))
-					: [];
-
-			return { toolCalls };
-		} catch (error) {
-			console.warn("Failed to parse LLM output:", error);
-		}
-		return { toolCalls: [] };
-	}
 
 	private async executeToolCalls(toolCalls: ToolCall[]): Promise<ToolResult[]> {
 		const results: ToolResult[] = [];
@@ -207,30 +185,28 @@ For example, to use a tool named "search" with a "query" argument, you would res
 
 			// Get LLM response
 			this.stream = streamLlm(llmMessages, finalLlmOptions);
-			let response = "";
-			try {
-				response = await readStream(this.stream, (chunk) => {
-					if (this.isStopped) {
-						this.stream?.cancel();
-						return;
-					}
+			const reader = this.stream.getReader();
+			const parser = new StreamingToolParser();
+			let done = false;
+
+			while (!done) {
+				if (this.isStopped) {
+					reader.cancel();
+					break;
+				}
+
+				const { value, done: readerDone } = await reader.read();
+				done = readerDone;
+
+				if (value) {
+					const chunk = value;
+					parser.parse(chunk);
 					onProgress?.({
 						message: chunk,
 						iterations,
 						finished: false,
 					});
-				});
-			} catch (error) {
-				if (this.isStopped) {
-					return {
-						message: "Operation stopped by user.",
-						finished: true,
-						iterations,
-						toolCalls: allToolCalls,
-						toolResults: allToolResults,
-					};
 				}
-				throw error;
 			}
 
 			if (this.isStopped) {
@@ -243,15 +219,14 @@ For example, to use a tool named "search" with a "query" argument, you would res
 				};
 			}
 
-			lastResponse = response;
-
-			// Check for tool calls
-			const { toolCalls } = this.parseLlmOutput(response);
+			const finalParseResult = parser.finalize();
+			lastResponse = parser.getCompleteMessage();
+			const toolCalls = finalParseResult.toolCalls;
 
 			if (toolCalls.length === 0) {
-				// No tool calls, we're done
+				// No tool calls, we are done
 				return {
-					message: response,
+					message: lastResponse,
 					toolCalls: allToolCalls,
 					toolResults: allToolResults,
 					iterations,
@@ -268,7 +243,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
 			messages.push({
 				id: crypto.randomUUID(),
 				role: "assistant",
-				content: response,
+				content: lastResponse,
 				toolCalls,
 			});
 
@@ -287,7 +262,6 @@ For example, to use a tool named "search" with a "query" argument, you would res
 
 			// Notify progress
 			onProgress?.({
-				message: response,
 				toolCalls: allToolCalls,
 				toolResults: allToolResults,
 				iterations,

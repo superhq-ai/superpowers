@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Select from "../components/ui/Select";
+import Switch from "../components/ui/Switch";
 import { useAppSettings } from "../hooks/useAppSettings";
 import { useTestLlm } from "../hooks/useTestLlm";
 import type { LLMProvider } from "../types";
@@ -112,6 +113,19 @@ const Settings = () => {
 							</button>
 						</div>
 					</div>
+				</div>
+			</div>
+
+			<div className="mt-6 border-t border-gray-300 pt-4">
+				<h2 className="text-md font-bold mb-2">Advanced Settings</h2>
+				<div className="flex items-center justify-between">
+					<Switch
+						label="Developer Mode"
+						checked={settings.developerMode || false}
+						onChange={(checked: boolean) =>
+							setSettings({ developerMode: checked })
+						}
+					/>
 				</div>
 			</div>
 

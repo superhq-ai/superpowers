@@ -11,6 +11,7 @@ const defaults: AppSettings = {
 	selectedProvider: "gemini",
 	model: defaultModels.gemini,
 	defaultProvider: "gemini",
+	developerMode: false,
 };
 
 export function useAppSettings() {
