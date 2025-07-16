@@ -17,21 +17,28 @@ export function useAppSettings() {
 	const [settings, setSettings] = useState<AppSettings>(defaults);
 
 	useEffect(() => {
-		if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.sync) {
-		chrome.storage.sync.get(["settings"], (result) => {
-			if (result.settings) {
-				const loadedSettings = result.settings as AppSettings;
-				const provider =
-					loadedSettings.selectedProvider || defaults.selectedProvider;
-				const allValidModels = Object.values(defaultModels);
-				if (!allValidModels.includes(loadedSettings.model)) {
-					loadedSettings.model = defaultModels[provider];
+		if (
+			typeof chrome !== "undefined" &&
+			chrome.storage &&
+			chrome.storage.sync
+		) {
+			chrome.storage.sync.get(["settings"], (result) => {
+				if (result.settings) {
+					const loadedSettings = result.settings as AppSettings;
+					const provider =
+						loadedSettings.selectedProvider || defaults.selectedProvider;
+					const allValidModels = Object.values(defaultModels);
+					if (!allValidModels.includes(loadedSettings.model)) {
+						loadedSettings.model = defaultModels[provider];
+					}
+					setSettings((prevSettings) => ({
+						...prevSettings,
+						...loadedSettings,
+					}));
 				}
-				setSettings((prevSettings) => ({ ...prevSettings, ...loadedSettings }));
-			}
-		});
+			});
 		} else {
-  			console.warn("Chrome storage.sync is not available.");
+			console.warn("Chrome storage.sync is not available.");
 		}
 	}, []);
 

@@ -8,7 +8,6 @@ import { useTestLlm } from "../hooks/useTestLlm";
 import type { LLMProvider } from "../types";
 import { PROVIDER_URLS, DEFAULT_PROVIDER_URL } from "../utils/providers.ts";
 
-
 const Settings = () => {
 	const { settings, setSettings, saveSettings } = useAppSettings();
 	const [showApiKey, setShowApiKey] = useState(false);
@@ -98,31 +97,36 @@ const Settings = () => {
 					</div>
 					{/* Generate API Key Button */}
 					<div className="absolute inset-y-0 right-0 pr-1 flex items-center top-6">
-					<button
-						type="button"
-						title="API key generation page"
-						onClick={() => {
-							const url = PROVIDER_URLS[settings.selectedProvider] || DEFAULT_PROVIDER_URL;
-							window.open(url, "_blank");
-						}}
-						style={{
-							padding: "6px 12px",
-							marginRight:"35px",
-							fontSize: "14px",
-							fontWeight: "500",
-							color: "#2563eb", // blue-600
-							backgroundColor: "transparent",
-							border: "1px solid #2563eb",
-							borderRadius: "6px",
-							cursor: "pointer",
-							transition: "all 0.2s ease-in-out",
-						}}
-						onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#ebf4ff")}
-						onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+						<button
+							type="button"
+							title="API key generation page"
+							onClick={() => {
+								const url =
+									PROVIDER_URLS[settings.selectedProvider] ||
+									DEFAULT_PROVIDER_URL;
+								window.open(url, "_blank");
+							}}
+							style={{
+								padding: "6px 12px",
+								marginRight: "35px",
+								fontSize: "14px",
+								fontWeight: "500",
+								color: "#2563eb", // blue-600
+								backgroundColor: "transparent",
+								border: "1px solid #2563eb",
+								borderRadius: "6px",
+								cursor: "pointer",
+								transition: "all 0.2s ease-in-out",
+							}}
+							onMouseOver={(e) =>
+								(e.currentTarget.style.backgroundColor = "#ebf4ff")
+							}
+							onMouseOut={(e) =>
+								(e.currentTarget.style.backgroundColor = "transparent")
+							}
 						>
-						Get Key
+							Get Key
 						</button>
-
 					</div>
 				</div>
 			</div>
