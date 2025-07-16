@@ -38,6 +38,7 @@ const PromptBox = ({
 	const { takeScreenshot } = useScreenshot();
 
 	const submit = () => {
+		if (!prompt.trim() && images.length === 0) return;
 		onSubmit(images.map((img) => img.file));
 		resetImages();
 	};
