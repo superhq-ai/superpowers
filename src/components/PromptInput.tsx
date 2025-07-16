@@ -1,6 +1,6 @@
 import { ArrowUp, Image, Scan, X } from "lucide-react";
 import { MAX_IMAGES } from "../constants";
-import { useAppSettings } from "../hooks/useAppSettings";
+import { useAppSettings } from "../contexts/AppSettingsContext";
 import usePastedFiles, { AcceptedFileType } from "../hooks/usePastedFiles";
 import useScreenshot from "../hooks/useScreenshot";
 import { ModelSelect } from "./ModelSelect";

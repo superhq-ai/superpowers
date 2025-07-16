@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import ChatMessage from "../components/ChatMessage";
 import PromptBox from "../components/PromptInput";
 import { useAgent } from "../hooks/useAgent";
-import { useAppSettings } from "../hooks/useAppSettings";
+import { useAppSettings } from "../contexts/AppSettingsContext";
 import { agent } from "../lib/agent-instance";
 import { TOOL_CALL_JSON_CODE_BLOCK_REGEX } from "../lib/regex";
 import { useConversationStore } from "../lib/store";

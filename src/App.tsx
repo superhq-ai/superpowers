@@ -2,6 +2,7 @@ import SidebarContainer from "./components/SidebarContainer";
 import SidebarHeader from "./components/SidebarHeader";
 import ViewContainer from "./components/ViewContainer";
 import { ViewProvider } from "./contexts/ViewContext";
+import { AppSettingsProvider } from "./contexts/AppSettingsContext";
 import { useView } from "./hooks/useView";
 
 export type View = "chat" | "history" | "settings";
@@ -21,9 +22,11 @@ const AppContent = () => {
 
 const App = () => {
 	return (
-		<ViewProvider>
-			<AppContent />
-		</ViewProvider>
+		<AppSettingsProvider>
+			<ViewProvider>
+					<AppContent />
+			</ViewProvider>
+		</AppSettingsProvider>
 	);
 };
 

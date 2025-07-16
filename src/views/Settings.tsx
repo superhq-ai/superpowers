@@ -4,7 +4,7 @@ import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Select from "../components/ui/Select";
 import Switch from "../components/ui/Switch";
-import { useAppSettings } from "../hooks/useAppSettings";
+import { useAppSettings } from "../contexts/AppSettingsContext";
 import { useTestLlm } from "../hooks/useTestLlm";
 import type { LLMProvider } from "../types";
 import { PROVIDER_URLS, DEFAULT_PROVIDER_URL } from "../utils/providers.ts";

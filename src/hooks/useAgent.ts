@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Agent } from "../lib/agent";
 import type { UseLLMOptions } from "../types";
 import type { AgentMessage, AgentResponse } from "../types/agent";
-import { useAppSettings } from "./useAppSettings";
+import { useAppSettings } from "../contexts/AppSettingsContext";
 
 export const useAgent = (
 	agent: Agent,

@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+	type ReactNode,
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useState,
+} from "react";
 import { deepEqual } from "../lib/utils";
 import type { AppSettings, LLMProvider } from "../types";
 
@@ -14,7 +21,17 @@ const defaults: AppSettings = {
 	developerMode: false,
 };
 
-export function useAppSettings() {
+interface AppSettingsContextType {
+	settings: AppSettings;
+	setSettings: (newSettings: Partial<AppSettings>) => void;
+	saveSettings: () => void;
+}
+
+const AppSettingsContext = createContext<AppSettingsContextType | undefined>(
+	undefined,
+);
+
+export function AppSettingsProvider({ children }: { children: ReactNode }) {
 	const [settings, setSettings] = useState<AppSettings>(defaults);
 
 	useEffect(() => {
@@ -68,9 +85,19 @@ export function useAppSettings() {
 		}
 	}, [settings]);
 
-	return {
-		settings,
-		setSettings: handleSetSettings,
-		saveSettings,
-	};
+	return (
+		<AppSettingsContext.Provider
+			value={{ settings, setSettings: handleSetSettings, saveSettings }}
+		>
+			{children}
+		</AppSettingsContext.Provider>
+	);
+}
+
+export function useAppSettings() {
+	const context = useContext(AppSettingsContext);
+	if (!context) {
+		throw new Error("useAppSettings must be used within an AppSettingsProvider");
+	}
+	return context;
 }
