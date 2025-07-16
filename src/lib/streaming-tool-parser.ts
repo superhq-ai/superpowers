@@ -61,7 +61,7 @@ export class StreamingToolParser {
 	private findToolBlockStart(): ToolParseResult {
 		const match = this.buffer.match(this.blockStartPattern);
 
-		if (!match) {
+		if (!match || match.index === undefined) {
 			return {
 				toolCalls: [],
 				isComplete: false,
@@ -71,7 +71,7 @@ export class StreamingToolParser {
 
 		// Found the start of a tool block
 		this.inToolBlock = true;
-		const startIndex = match.index! + match[0].length;
+		const startIndex = match.index + match[0].length;
 
 		// Extract content after the opening block
 		this.toolCodeContent = this.buffer.slice(startIndex);
@@ -83,7 +83,7 @@ export class StreamingToolParser {
 	private findToolBlockEnd(): ToolParseResult {
 		const endMatch = this.toolCodeContent.match(this.blockEndPattern);
 
-		if (!endMatch) {
+		if (!endMatch || endMatch.index === undefined) {
 			// Block not yet complete
 			return {
 				toolCalls: [],
@@ -93,7 +93,7 @@ export class StreamingToolParser {
 		}
 
 		// Found the end of the tool block
-		const jsonContent = this.toolCodeContent.slice(0, endMatch.index!);
+		const jsonContent = this.toolCodeContent.slice(0, endMatch.index);
 		this.inToolBlock = false;
 
 		// Parse the JSON content
@@ -189,8 +189,8 @@ export class StreamingToolParser {
 	getContentAfterToolBlock(): string {
 		if (!this.inToolBlock && this.buffer.includes("```tool_code")) {
 			const toolBlockMatch = this.buffer.match(/```tool_code.*?\n```/s);
-			if (toolBlockMatch) {
-				const endIndex = toolBlockMatch.index! + toolBlockMatch[0].length;
+			if (toolBlockMatch && toolBlockMatch.index !== undefined) {
+				const endIndex = toolBlockMatch.index + toolBlockMatch[0].length;
 				return this.buffer.slice(endIndex);
 			}
 		}

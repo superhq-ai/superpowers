@@ -7,7 +7,7 @@ import Switch from "../components/ui/Switch";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import { useTestLlm } from "../hooks/useTestLlm";
 import type { LLMProvider } from "../types";
-import { DEFAULT_PROVIDER_URL, PROVIDER_URLS } from "../utils/providers.ts";
+import { PROVIDERS } from "../utils/providers.ts";
 
 const Settings = () => {
 	const {
@@ -40,7 +40,12 @@ const Settings = () => {
 		setIsSaved(true);
 	};
 
-	const providerOptions = [{ value: "gemini", label: "Gemini" }];
+	const providerOptions = Object.entries(PROVIDERS).map(
+		([value, { label }]) => ({
+			value: value as LLMProvider,
+			label,
+		}),
+	);
 
 	useEffect(() => {
 		if (isSaved) {
@@ -93,10 +98,7 @@ const Settings = () => {
 					<Input
 						id="api-key"
 						name="api-key"
-						label={`${
-							draftSettings.selectedProvider.charAt(0).toUpperCase() +
-							draftSettings.selectedProvider.slice(1)
-						} API Key`}
+						label={`${PROVIDERS[draftSettings.selectedProvider].label} API Key`}
 						type={showApiKey ? "text" : "password"}
 						value={
 							draftSettings.apiKeys?.[draftSettings.selectedProvider] || ""
@@ -111,8 +113,7 @@ const Settings = () => {
 									title="API key generation page"
 									onClick={() => {
 										const url =
-											PROVIDER_URLS[draftSettings.selectedProvider] ||
-											DEFAULT_PROVIDER_URL;
+											PROVIDERS[draftSettings.selectedProvider].apiKeyUrl;
 										window.open(url, "_blank");
 									}}
 									className="bg-transparent font-medium text-blue-600 cursor-pointer text-xs py-1 px-2 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors"
