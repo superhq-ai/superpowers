@@ -7,7 +7,7 @@ import Switch from "../components/ui/Switch";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import { useTestLlm } from "../hooks/useTestLlm";
 import type { LLMProvider } from "../types";
-import { PROVIDER_URLS, DEFAULT_PROVIDER_URL } from "../utils/providers.ts";
+import { DEFAULT_PROVIDER_URL, PROVIDER_URLS } from "../utils/providers.ts";
 
 const Settings = () => {
 	const {
