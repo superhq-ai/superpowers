@@ -153,7 +153,7 @@ const PromptBox = ({
 								provider={settings.selectedProvider}
 								apiKey={settings.apiKeys[settings.selectedProvider]}
 								value={settings.model}
-								onChange={(model) => setSettings({ ...settings, model })}
+								onChange={(model) => setSettings({ model })}
 							/>
 						)}
 					</div>

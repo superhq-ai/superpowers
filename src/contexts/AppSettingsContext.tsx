@@ -6,7 +6,6 @@ import {
 	useEffect,
 	useState,
 } from "react";
-import { deepEqual } from "../lib/utils";
 import type { AppSettings, LLMProvider } from "../types";
 
 const defaultModels: Record<LLMProvider, string> = {
@@ -23,8 +22,11 @@ const defaults: AppSettings = {
 
 interface AppSettingsContextType {
 	settings: AppSettings;
+	draftSettings: AppSettings;
 	setSettings: (newSettings: Partial<AppSettings>) => void;
+	setDraftSettings: (newSettings: Partial<AppSettings>) => void;
 	saveSettings: () => void;
+	resetDraftSettings: () => void;
 }
 
 const AppSettingsContext = createContext<AppSettingsContextType | undefined>(
@@ -33,6 +35,7 @@ const AppSettingsContext = createContext<AppSettingsContextType | undefined>(
 
 export function AppSettingsProvider({ children }: { children: ReactNode }) {
 	const [settings, setSettings] = useState<AppSettings>(defaults);
+	const [draftSettings, setDraftSettings] = useState<AppSettings>(defaults);
 
 	useEffect(() => {
 		if (
@@ -50,6 +53,10 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 						loadedSettings.model = defaultModels[provider];
 					}
 					setSettings((prevSettings) => ({
+						...prevSettings,
+						...loadedSettings,
+					}));
+					setDraftSettings((prevSettings) => ({
 						...prevSettings,
 						...loadedSettings,
 					}));
@@ -75,19 +82,43 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 		});
 	}, []);
 
-	const saveSettings = useCallback(() => {
-		chrome.storage.sync.set({ settings });
-	}, [settings]);
+	const handleSetDraftSettings = useCallback(
+		(newSettings: Partial<AppSettings>) => {
+			setDraftSettings((prevSettings) => {
+				const updatedSettings = { ...prevSettings, ...newSettings };
 
-	useEffect(() => {
-		if (!deepEqual(settings, defaults)) {
-			chrome.storage.sync.set({ settings });
-		}
+				if (
+					newSettings.selectedProvider &&
+					newSettings.selectedProvider !== prevSettings.selectedProvider
+				) {
+					updatedSettings.model = defaultModels[newSettings.selectedProvider];
+				}
+
+				return updatedSettings;
+			});
+		},
+		[],
+	);
+
+	const saveSettings = useCallback(() => {
+		setSettings(draftSettings);
+		chrome.storage.sync.set({ settings: draftSettings });
+	}, [draftSettings]);
+
+	const resetDraftSettings = useCallback(() => {
+		setDraftSettings(settings);
 	}, [settings]);
 
 	return (
 		<AppSettingsContext.Provider
-			value={{ settings, setSettings: handleSetSettings, saveSettings }}
+			value={{
+				settings,
+				draftSettings,
+				setSettings: handleSetSettings,
+				setDraftSettings: handleSetDraftSettings,
+				saveSettings,
+				resetDraftSettings,
+			}}
 		>
 			{children}
 		</AppSettingsContext.Provider>
@@ -97,7 +128,9 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 export function useAppSettings() {
 	const context = useContext(AppSettingsContext);
 	if (!context) {
-		throw new Error("useAppSettings must be used within an AppSettingsProvider");
+		throw new Error(
+			"useAppSettings must be used within an AppSettingsProvider",
+		);
 	}
 	return context;
 }

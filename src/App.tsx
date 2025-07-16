@@ -24,7 +24,7 @@ const App = () => {
 	return (
 		<AppSettingsProvider>
 			<ViewProvider>
-					<AppContent />
+				<AppContent />
 			</ViewProvider>
 		</AppSettingsProvider>
 	);

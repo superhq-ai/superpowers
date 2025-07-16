@@ -10,21 +10,27 @@ import type { LLMProvider } from "../types";
 import { PROVIDER_URLS, DEFAULT_PROVIDER_URL } from "../utils/providers.ts";
 
 const Settings = () => {
-	const { settings, setSettings, saveSettings } = useAppSettings();
+	const {
+		settings,
+		draftSettings,
+		setDraftSettings,
+		saveSettings,
+		resetDraftSettings,
+	} = useAppSettings();
 	const [showApiKey, setShowApiKey] = useState(false);
 	const { testConnection, isTesting, isSuccess, testResponse, testError } =
 		useTestLlm();
 	const [isSaved, setIsSaved] = useState(false);
 
 	const handleProviderChange = (provider: LLMProvider) => {
-		setSettings({ selectedProvider: provider });
+		setDraftSettings({ selectedProvider: provider });
 	};
 
 	const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setSettings({
+		setDraftSettings({
 			apiKeys: {
-				...settings.apiKeys,
-				[settings.selectedProvider]: e.target.value,
+				...draftSettings.apiKeys,
+				[draftSettings.selectedProvider]: e.target.value,
 			},
 		});
 	};
@@ -45,6 +51,16 @@ const Settings = () => {
 		}
 	}, [isSaved]);
 
+	useEffect(() => {
+		setDraftSettings(settings);
+	}, [settings, setDraftSettings]);
+
+	useEffect(() => {
+		return () => {
+			resetDraftSettings();
+		};
+	}, [resetDraftSettings]);
+
 	return (
 		<div className="px-4">
 			<h1 className="text-lg font-bold mb-4">Settings</h1>
@@ -53,15 +69,17 @@ const Settings = () => {
 				<Select
 					label="Select Provider"
 					options={providerOptions}
-					value={settings.selectedProvider}
+					value={draftSettings.selectedProvider}
 					onChange={(value) => handleProviderChange(value as LLMProvider)}
-					defaultProvider={settings.defaultProvider}
+					defaultProvider={draftSettings.defaultProvider}
 				/>
-				{settings.selectedProvider !== settings.defaultProvider && (
+				{draftSettings.selectedProvider !== draftSettings.defaultProvider && (
 					<button
 						type="button"
 						onClick={() =>
-							setSettings({ defaultProvider: settings.selectedProvider })
+							setDraftSettings({
+								defaultProvider: draftSettings.selectedProvider,
+							})
 						}
 						className="text-blue-600 cursor-pointer text-sm mt-1"
 					>
@@ -76,22 +94,24 @@ const Settings = () => {
 						id="api-key"
 						name="api-key"
 						label={`${
-							settings.selectedProvider.charAt(0).toUpperCase() +
-							settings.selectedProvider.slice(1)
+							draftSettings.selectedProvider.charAt(0).toUpperCase() +
+							draftSettings.selectedProvider.slice(1)
 						} API Key`}
 						type={showApiKey ? "text" : "password"}
-						value={settings.apiKeys?.[settings.selectedProvider] || ""}
+						value={
+							draftSettings.apiKeys?.[draftSettings.selectedProvider] || ""
+						}
 						onChange={handleApiKeyChange}
 					/>
 					<div className="absolute inset-y-0 right-0 pr-3 flex items-center top-6">
 						<div className="flex items-center gap-x-2">
-							{!settings.apiKeys?.[settings.selectedProvider] && (
+							{!draftSettings.apiKeys?.[draftSettings.selectedProvider] && (
 								<button
 									type="button"
 									title="API key generation page"
 									onClick={() => {
 										const url =
-											PROVIDER_URLS[settings.selectedProvider] ||
+											PROVIDER_URLS[draftSettings.selectedProvider] ||
 											DEFAULT_PROVIDER_URL;
 										window.open(url, "_blank");
 									}}
@@ -121,9 +141,9 @@ const Settings = () => {
 				<div className="flex items-center justify-between">
 					<Switch
 						label="Developer Mode"
-						checked={settings.developerMode || false}
+						checked={draftSettings.developerMode || false}
 						onChange={(checked: boolean) =>
-							setSettings({ developerMode: checked })
+							setDraftSettings({ developerMode: checked })
 						}
 					/>
 				</div>
@@ -135,7 +155,9 @@ const Settings = () => {
 				</Button>
 				<Button
 					type="button"
-					onClick={() => testConnection(settings.selectedProvider, settings)}
+					onClick={() =>
+						testConnection(draftSettings.selectedProvider, draftSettings)
+					}
 					disabled={isTesting}
 					variant="secondary"
 				>
