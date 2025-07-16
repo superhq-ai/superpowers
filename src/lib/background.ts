@@ -2,22 +2,16 @@ import { RUNTIME_MESSAGES } from "../constants";
 import type { BrowserActionResult } from "../types/browser";
 import { browserActions } from "./browser-actions";
 import { fetchLlmsFiles, listenForConnections } from "./llm-service";
-import { SidebarManager } from "./sidebar-manager";
-
-const sidebarManager = new SidebarManager();
-sidebarManager.init();
+import initSidebar from "./sidebar";
 
 listenForConnections();
+initSidebar();
 
 function handleRuntimeMessage(
 	request: { type: string; data?: any; tabId?: number },
 	_sender: chrome.runtime.MessageSender,
 	sendResponse: (response?: any) => void,
 ): boolean {
-	if (sidebarManager.onMessage(request, sendResponse)) {
-		return true;
-	}
-
 	const { type, data } = request;
 	const action = browserActions[type as keyof typeof browserActions];
 
@@ -42,7 +36,3 @@ function handleRuntimeMessage(
 }
 
 chrome.runtime.onMessage.addListener(handleRuntimeMessage);
-
-chrome.action.onClicked.addListener((tab) => {
-	sidebarManager.toggle(tab);
-});

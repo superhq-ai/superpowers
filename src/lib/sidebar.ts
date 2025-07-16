@@ -1,30 +1,33 @@
-import { SIDEBAR_MESSAGES, SIDEBAR_STATE } from "./sidebar-manager";
+const openSidebar = (tab: chrome.tabs.Tab) => {
+	if (tab && typeof tab.id === "number" && typeof tab.windowId === "number") {
+		chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
+	}
+};
 
-if (typeof chrome !== "undefined" && chrome.runtime?.onMessage) {
-	chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-		if (message.type === SIDEBAR_MESSAGES.CLOSE) {
-			window.close();
-			sendResponse({ success: true });
+const initSidebar = () => {
+	chrome.runtime.onInstalled.addListener(() => {
+		chrome.contextMenus.create({
+			id: "openSidebar",
+			title: "Use Superpowers",
+			contexts: ["all"],
+		});
+	});
+
+	chrome.contextMenus.onClicked.addListener((info, tab) => {
+		if (info.menuItemId === "openSidebar" && tab) {
+			openSidebar(tab);
 		}
 	});
-} else {
-	console.warn("Chrome runtime or onMessage not available.");
-}
 
-window.addEventListener("DOMContentLoaded", () => {
-	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-		const tabId = tabs[0]?.id;
-		if (tabId) {
-			chrome.runtime.sendMessage({ type: SIDEBAR_STATE.LOADED, tabId });
+	chrome.action.onClicked.addListener((tab) => {
+		openSidebar(tab);
+	});
+
+	chrome.commands.onCommand.addListener((command, tab) => {
+		if (command === "open_sidebar") {
+			openSidebar(tab);
 		}
 	});
-});
+};
 
-window.addEventListener("beforeunload", () => {
-	chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-		const tabId = tabs[0]?.id;
-		if (tabId) {
-			chrome.runtime.sendMessage({ type: SIDEBAR_STATE.CLOSED, tabId });
-		}
-	});
-});
+export default initSidebar;
