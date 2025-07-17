@@ -1,6 +1,7 @@
 import { Brain, CheckCircle, Circle, Loader2, Search } from "lucide-react";
 import type { PlannerStep } from "../lib/streaming-tool-parser";
 import { formatTime } from "../lib/utils";
+import MarkdownRenderer from "./MarkdownRenderer";
 
 interface PlannerPanelProps {
 	steps: PlannerStep[];
@@ -101,7 +102,7 @@ const PlannerPanel: React.FC<PlannerPanelProps> = ({
 										)}
 									</div>
 									<div className="text-sm text-gray-600 whitespace-pre-wrap">
-										{step.content}
+										<MarkdownRenderer>{step.content}</MarkdownRenderer>
 									</div>
 									{step.toolResult && (
 										<div className="mt-2 p-2 bg-white rounded border text-xs text-gray-500">
