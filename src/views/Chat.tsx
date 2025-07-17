@@ -195,18 +195,7 @@ Title:`;
 			{isLoading && (
 				<div className="text-gray-900 p-4">
 					<div className="flex items-center gap-2">
-						<div className="flex space-x-1">
-							<div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-							<div
-								className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-								style={{ animationDelay: "0.1s" }}
-							></div>
-							<div
-								className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-								style={{ animationDelay: "0.2s" }}
-							></div>
-						</div>
-						<span className="text-sm text-gray-500">Thinking...</span>
+						<span className="text-sm thinking-text">Thinking...</span>
 					</div>
 				</div>
 			)}

@@ -18,3 +18,28 @@
 ::-webkit-scrollbar-thumb:hover {
 	background: #555;
 }
+
+@keyframes gradient-wave {
+	0% {
+		background-position: 100% 0;
+	}
+	100% {
+		background-position: -100% 0;
+	}
+}
+
+.thinking-text {
+	background: linear-gradient(
+		90deg,
+		#6b7280 0%,
+		#6b7280 25%,
+		#d1d5db 50%,
+		#6b7280 75%,
+		#6b7280 100%
+	);
+	background-size: 150% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: gradient-wave 2s ease-out infinite;
+}
