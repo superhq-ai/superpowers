@@ -10,6 +10,8 @@ import type {
 	ScrollToElementResult,
 	SearchGoogleArgs,
 	SelectorArgs,
+	SimulateKeyPressArgs,
+	SimulateKeyPressResult,
 	TabInfo,
 } from "../types/browser";
 
@@ -141,5 +143,14 @@ export const browserActions = {
 				resolve("Navigated forward");
 			}
 		});
+	},
+
+	simulateKeyPress: (
+		args: SimulateKeyPressArgs,
+	): Promise<SimulateKeyPressResult> => {
+		return sendMessageToContent<SimulateKeyPressResult>(
+			"simulateKeyPress",
+			args,
+		);
 	},
 };

@@ -37,4 +37,6 @@ export const browserHandlers = {
 	listTabs: () => sendMessageToBackground({ type: "listTabs" }),
 	historyNav: (args: { action: "back" | "forward" }) =>
 		sendMessageToBackground({ type: "historyNav", data: args }),
+	simulateKeyPress: (args: { selector: string; key: string }) =>
+		sendMessageToBackground({ type: "simulateKeyPress", data: args }),
 };

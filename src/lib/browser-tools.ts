@@ -155,4 +155,24 @@ export const browserTools: Record<string, Tool> = {
 			required: ["action"],
 		},
 	},
+
+	simulateKeyPress: {
+		name: "simulateKeyPress",
+		description: "Simulate a key press event on a specific element.",
+		parameters: {
+			type: "object",
+			properties: {
+				selector: {
+					type: "string",
+					description:
+						"CSS selector for the element to trigger the key press on.",
+				},
+				key: {
+					type: "string",
+					description: "The key to press (e.g., 'Enter', 'Escape').",
+				},
+			},
+			required: ["selector", "key"],
+		},
+	},
 };

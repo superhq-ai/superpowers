@@ -5,6 +5,8 @@ import type {
 	FillInputResult,
 	PageContentResult,
 	SelectorArgs,
+	SimulateKeyPressArgs,
+	SimulateKeyPressResult,
 } from "../types/browser";
 
 import domToMarkdown from "./dom-to-markdown";
@@ -91,6 +93,41 @@ const scrollToElement = (
 	}
 };
 
+const simulateKeyPress = (
+	args: SimulateKeyPressArgs,
+): SimulateKeyPressResult => {
+	try {
+		const element = document.querySelector(args.selector) as HTMLElement | null;
+		if (!element) {
+			return { error: `Element not found: ${args.selector}` };
+		}
+
+		// Focus the element first
+		element.focus();
+
+		// Create a keydown event
+		const keydownEvent = new KeyboardEvent("keydown", {
+			key: args.key,
+			code: args.key === "Enter" ? "Enter" : args.key,
+			keyCode: args.key === "Enter" ? 13 : args.key.charCodeAt(0),
+			which: args.key === "Enter" ? 13 : args.key.charCodeAt(0),
+			bubbles: true,
+			cancelable: true,
+			composed: true, // Important for shadow DOM
+		});
+
+		// Dispatch both events
+		element.dispatchEvent(keydownEvent);
+
+		return {
+			success: true,
+			message: `Simulated key press "${args.key}" on element: ${args.selector}`,
+		};
+	} catch (error) {
+		return { error: error instanceof Error ? error.message : String(error) };
+	}
+};
+
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 	const { type, data } = request;
 	let result: any;
@@ -110,6 +147,9 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 			break;
 		case "scrollToElement":
 			result = scrollToElement(data);
+			break;
+		case "simulateKeyPress":
+			result = simulateKeyPress(data);
 			break;
 		default:
 			result = { error: `Unknown action: ${type}` };

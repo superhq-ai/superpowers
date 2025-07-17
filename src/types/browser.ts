@@ -10,7 +10,8 @@ export type MessageType =
 	| "switchToTab"
 	| "listTabs"
 	| "scrollToElement"
-	| "historyNav";
+	| "historyNav"
+	| "simulateKeyPress";
 
 export interface BaseMessage<T = unknown> {
 	type: MessageType | string;
@@ -42,6 +43,10 @@ export interface SearchGoogleArgs {
 
 export interface HistoryNavArgs {
 	action: "back" | "forward";
+}
+
+export interface SimulateKeyPressArgs extends SelectorArgs {
+	key: string;
 }
 
 export type PageContentResult =
@@ -87,6 +92,13 @@ export type SearchGoogleResult =
 	  }
 	| { error: string };
 
+export type SimulateKeyPressResult =
+	| {
+			success: true;
+			message: string;
+	  }
+	| { error: string };
+
 export interface TabInfo {
 	id: number;
 	title: string;
@@ -108,4 +120,5 @@ export type BrowserActionResult =
 	| ClickElementResult
 	| FillInputResult
 	| CurrentTabResult
-	| ScrollToElementResult;
+	| ScrollToElementResult
+	| SimulateKeyPressResult;
