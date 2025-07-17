@@ -69,3 +69,10 @@ export function deepEqual(obj1: any, obj2: any): boolean {
 	}
 	return false;
 }
+
+export function formatTime(date: Date) {
+	return new Intl.DateTimeFormat("en-US", {
+		hour: "2-digit",
+		minute: "2-digit",
+	}).format(date);
+}

@@ -1,18 +1,25 @@
 import { Globe, Lightbulb, Zap } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ChatMessage from "../components/ChatMessage";
+import PlannerPanel from "../components/PlannerPanel";
 import PromptBox from "../components/PromptInput";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import { useAgent } from "../hooks/useAgent";
 import { agent } from "../lib/agent-instance";
 import { TOOL_CALL_JSON_CODE_BLOCK_REGEX } from "../lib/regex";
 import { useConversationStore } from "../lib/store";
+import type { PlannerStep } from "../lib/streaming-tool-parser";
 import { fileToDataURL, readStream } from "../lib/utils";
 import { streamLlm } from "../services/llm";
 import type { LLMMessage } from "../types";
 
 const Chat = () => {
 	const [inputValue, setInputValue] = useState("");
+	const [showPlanner, setShowPlanner] = useState(true);
+	const [currentPlannerSteps, setCurrentPlannerSteps] = useState<PlannerStep[]>(
+		[],
+	);
+
 	const { settings } = useAppSettings();
 	const {
 		conversations,
@@ -24,6 +31,7 @@ const Chat = () => {
 		startConversation,
 		setValidationError,
 	} = useConversationStore();
+
 	const { isLoading, error, runAgent, stopAgent } = useAgent(agent, {
 		onMessage: (content) => {
 			updateLastMessage({ content });
@@ -38,8 +46,13 @@ const Chat = () => {
 				toolCalls: response.toolCalls,
 				toolResults: response.toolResults,
 			});
+			setShowPlanner(false);
+		},
+		onPlannerUpdate: (steps) => {
+			setCurrentPlannerSteps(steps);
 		},
 	});
+
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
 	const currentMessages = currentConversationId
@@ -68,6 +81,9 @@ const Chat = () => {
 			return;
 		}
 		setValidationError(null);
+
+		setCurrentPlannerSteps([]);
+		setShowPlanner(true);
 
 		const attachments = await Promise.all(
 			(images || []).map(async (file) => {
@@ -176,26 +192,50 @@ Title:`;
 						</div>
 					</div>
 				) : (
-					currentMessages
-						.filter((msg) => msg.role === "user" || msg.role === "assistant")
-						.map((message) => {
-							const chatMessage = {
-								id: message.id,
-								type: message.role as "user" | "assistant",
-								content: message.content,
-								toolCalls: message.toolCalls,
-								toolResults: message.toolResults,
-								attachments: message.attachments,
-							};
-							return <ChatMessage key={message.id} message={chatMessage} />;
-						})
+					<div className="space-y-4">
+						{currentMessages
+							.filter((msg) => msg.role === "user" || msg.role === "assistant")
+							.map((message, index) => {
+								const chatMessage = {
+									id: message.id,
+									type: message.role as "user" | "assistant",
+									content: message.content,
+									toolCalls: message.toolCalls,
+									toolResults: message.toolResults,
+									attachments: message.attachments,
+								};
+
+								const isLastAssistantMessage =
+									message.role === "assistant" &&
+									index === currentMessages.length - 1;
+
+								return (
+									<div key={message.id}>
+										{isLastAssistantMessage &&
+											currentPlannerSteps.length > 0 && (
+												<PlannerPanel
+													steps={currentPlannerSteps}
+													isVisible={showPlanner}
+													onToggle={() => setShowPlanner(!showPlanner)}
+												/>
+											)}
+										<ChatMessage message={chatMessage} />
+									</div>
+								);
+							})}
+					</div>
 				)}
 			</div>
 
 			{isLoading && (
 				<div className="text-gray-900 p-4">
 					<div className="flex items-center gap-2">
-						<span className="text-sm thinking-text">Thinking...</span>
+						<span className="text-sm thinking-text">
+							{currentPlannerSteps.length > 0 &&
+							currentPlannerSteps.some((s) => !s.isCompleted)
+								? "Executing tools..."
+								: "Thinking..."}
+						</span>
 					</div>
 				</div>
 			)}

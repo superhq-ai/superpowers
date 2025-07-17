@@ -1,22 +1,26 @@
 import { useState } from "react";
 import { useAppSettings } from "../contexts/AppSettingsContext";
-import type { Agent } from "../lib/agent";
+import type { Agent, ExtendedAgentResponse } from "../lib/agent";
+import type { PlannerStep } from "../lib/streaming-tool-parser";
 import type { UseLLMOptions } from "../types";
-import type { AgentMessage, AgentResponse } from "../types/agent";
+import type { AgentMessage } from "../types/agent";
 
 export const useAgent = (
 	agent: Agent,
 	{
 		onMessage,
 		onComplete,
+		onPlannerUpdate,
 	}: {
 		onMessage?: (message: string) => void;
-		onComplete?: (response: AgentResponse) => void;
+		onComplete?: (response: ExtendedAgentResponse) => void;
+		onPlannerUpdate?: (steps: PlannerStep[]) => void;
 	} = {},
 ) => {
 	const { settings } = useAppSettings();
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [plannerSteps, setPlannerSteps] = useState<PlannerStep[]>([]);
 
 	const runAgent = async (
 		history: AgentMessage[],
@@ -26,6 +30,7 @@ export const useAgent = (
 
 		setError(null);
 		setIsLoading(true);
+		setPlannerSteps([]);
 
 		try {
 			if (settings.developerMode) {
@@ -34,9 +39,15 @@ export const useAgent = (
 				console.log("LLM Options:", llmOptions);
 				console.groupEnd();
 			}
+
 			const response = await agent.run(history, llmOptions, (progress) => {
 				if (progress.message && onMessage) {
 					onMessage(progress.message);
+				}
+
+				if (progress.plannerSteps) {
+					setPlannerSteps(progress.plannerSteps);
+					onPlannerUpdate?.(progress.plannerSteps);
 				}
 			});
 
@@ -50,6 +61,7 @@ export const useAgent = (
 					new Date().toLocaleTimeString(),
 				);
 				console.log("Response:", response);
+				console.log("Planner Steps:", response.plannerSteps);
 				console.log("History:", history);
 				console.groupEnd();
 			}
@@ -68,5 +80,5 @@ export const useAgent = (
 		setIsLoading(false);
 	};
 
-	return { isLoading, error, runAgent, stopAgent };
+	return { isLoading, error, runAgent, stopAgent, plannerSteps };
 };

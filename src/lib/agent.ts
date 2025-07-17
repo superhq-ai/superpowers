@@ -9,7 +9,11 @@ import type {
 	ToolCall,
 	ToolResult,
 } from "../types/agent";
-import { StreamingToolParser } from "./streaming-tool-parser";
+import { type PlannerStep, StreamingToolParser } from "./streaming-tool-parser";
+
+export interface ExtendedAgentResponse extends AgentResponse {
+	plannerSteps: PlannerStep[];
+}
 
 export class Agent {
 	private tools: Tool[] = [];
@@ -66,6 +70,8 @@ For example, to use a tool named "search" with a "query" argument, you would res
   ]
 }
 \`\`\`
+
+Before using tools, explain your reasoning and approach. When tool calls are needed, make them, and then continue with your response based on the results.
 `;
 		}
 
@@ -135,9 +141,9 @@ For example, to use a tool named "search" with a "query" argument, you would res
 	async run(
 		history: AgentMessage[],
 		llmOptions: UseLLMOptions,
-		onProgress?: (response: Partial<AgentResponse>) => void,
+		onProgress?: (response: Partial<ExtendedAgentResponse>) => void,
 		context?: any,
-	): Promise<AgentResponse> {
+	): Promise<ExtendedAgentResponse> {
 		if (context?.url) {
 			this.systemPrompt += `\n\n## CURRENT PAGE CONTEXT\n\nYou are currently on tab ID ${context.id}, titled "${context.title}" (${context.url})\n`;
 			const baseUrl = new URL(context.url).hostname;
@@ -153,6 +159,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
 				}
 			}
 		}
+
 		this.isStopped = false;
 		const messages = [...history];
 
@@ -160,6 +167,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
 		let lastResponse = "";
 		const allToolCalls: ToolCall[] = [];
 		const allToolResults: ToolResult[] = [];
+		const parser = new StreamingToolParser();
 
 		const finalSystemPrompt = this.buildSystemPrompt();
 
@@ -171,9 +179,13 @@ For example, to use a tool named "search" with a "query" argument, you would res
 					iterations,
 					toolCalls: allToolCalls,
 					toolResults: allToolResults,
+					plannerSteps: parser.getPlannerSteps(),
 				};
 			}
 			iterations++;
+
+			// Reset parser for new iteration
+			parser.reset();
 
 			// Convert messages to LLM format
 			const llmMessages = this.convertToLLMMessages(messages);
@@ -185,7 +197,6 @@ For example, to use a tool named "search" with a "query" argument, you would res
 			// Get LLM response
 			this.stream = streamLlm(llmMessages, finalLlmOptions);
 			const reader = this.stream.getReader();
-			const parser = new StreamingToolParser();
 			let done = false;
 
 			while (!done) {
@@ -200,10 +211,13 @@ For example, to use a tool named "search" with a "query" argument, you would res
 				if (value) {
 					const chunk = value;
 					parser.parse(chunk);
+
+					// Send progress update with planner information
 					onProgress?.({
 						message: chunk,
 						iterations,
 						finished: false,
+						plannerSteps: parser.getPlannerSteps(),
 					});
 				}
 			}
@@ -215,11 +229,12 @@ For example, to use a tool named "search" with a "query" argument, you would res
 					iterations,
 					toolCalls: allToolCalls,
 					toolResults: allToolResults,
+					plannerSteps: parser.getPlannerSteps(),
 				};
 			}
 
 			const finalParseResult = parser.finalize();
-			lastResponse = parser.getCompleteMessage();
+			lastResponse = parser.getDisplayMessage();
 			const toolCalls = finalParseResult.toolCalls;
 
 			if (toolCalls.length === 0) {
@@ -230,6 +245,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
 					toolResults: allToolResults,
 					iterations,
 					finished: true,
+					plannerSteps: parser.getPlannerSteps(),
 				};
 			}
 
@@ -238,11 +254,16 @@ For example, to use a tool named "search" with a "query" argument, you would res
 			const toolResults = await this.executeToolCalls(toolCalls);
 			allToolResults.push(...toolResults);
 
+			// Update planner with tool results
+			for (const result of toolResults) {
+				parser.addToolResult(result.name, result.result, result.error);
+			}
+
 			// Add assistant message with tool calls
 			messages.push({
 				id: crypto.randomUUID(),
 				role: "assistant",
-				content: lastResponse,
+				content: parser.getCompleteMessage(),
 				toolCalls,
 			});
 
@@ -259,12 +280,13 @@ For example, to use a tool named "search" with a "query" argument, you would res
 				messages.push(toolMessage);
 			}
 
-			// Notify progress
+			// Notify progress with updated planner steps
 			onProgress?.({
 				toolCalls: allToolCalls,
 				toolResults: allToolResults,
 				iterations,
 				finished: false,
+				plannerSteps: parser.getPlannerSteps(),
 			});
 		}
 
@@ -275,6 +297,7 @@ For example, to use a tool named "search" with a "query" argument, you would res
 			toolResults: allToolResults,
 			iterations,
 			finished: false,
+			plannerSteps: parser.getPlannerSteps(),
 		};
 	}
 
