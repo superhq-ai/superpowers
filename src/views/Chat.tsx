@@ -46,7 +46,7 @@ const Chat = () => {
 				toolCalls: response.toolCalls,
 				toolResults: response.toolResults,
 			});
-			setShowPlanner(false);
+			setCurrentPlannerSteps([]);
 		},
 		onPlannerUpdate: (steps) => {
 			setCurrentPlannerSteps(steps);
