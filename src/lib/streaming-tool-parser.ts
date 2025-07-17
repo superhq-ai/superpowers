@@ -203,6 +203,15 @@ export class StreamingToolParser {
 		type: PlannerStep["type"],
 		toolName?: string,
 	): void {
+		const lastStep = this.plannerSteps[this.plannerSteps.length - 1];
+		if (
+			lastStep &&
+			lastStep.type === type &&
+			lastStep.content.trim() === content.trim()
+		) {
+			return;
+		}
+
 		const step: PlannerStep = {
 			id: crypto.randomUUID(),
 			content,
@@ -291,7 +300,7 @@ export class StreamingToolParser {
 		}
 
 		// Add any remaining content as thinking step
-		const remainingContent = this.contentAfterToolBlocks || this.buffer;
+		const remainingContent = this.contentAfterToolBlocks;
 		if (remainingContent.trim()) {
 			this.addPlannerStep(remainingContent.trim(), "thinking");
 		}

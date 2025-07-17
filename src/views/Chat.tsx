@@ -219,7 +219,9 @@ Title:`;
 													onToggle={() => setShowPlanner(!showPlanner)}
 												/>
 											)}
-										<ChatMessage message={chatMessage} />
+										{!(isLastAssistantMessage && isLoading) && (
+											<ChatMessage message={chatMessage} />
+										)}
 									</div>
 								);
 							})}
