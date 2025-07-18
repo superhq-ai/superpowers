@@ -103,14 +103,6 @@ export const browserActions = {
 		return sendMessageToContent<ScrollToElementResult>("scrollToElement", args);
 	},
 
-	queryTabs: (args: { query: string }): Promise<chrome.tabs.Tab[]> => {
-		return new Promise((resolve) => {
-			chrome.tabs.query({ title: `*${args.query}*` }, (tabs) => {
-				resolve(tabs);
-			});
-		});
-	},
-
 	switchToTab: (args: { tabId: number }): Promise<string> => {
 		return new Promise((resolve) => {
 			chrome.tabs.update(args.tabId, { active: true }, () => {

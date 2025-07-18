@@ -29,8 +29,6 @@ export const browserHandlers = {
 		sendMessageToBackground({ type: "navigateToUrl", data: args }),
 	searchGoogle: (args: { query: string }) =>
 		sendMessageToBackground({ type: "searchGoogle", data: args }),
-	queryTabs: (args: { query: string }) =>
-		sendMessageToBackground({ type: "queryTabs", data: args }),
 	switchToTab: (args: { tabId: number }) => {
 		return sendMessageToBackground({ type: "switchToTab", data: args });
 	},

@@ -103,20 +103,6 @@ export const browserTools: Record<string, Tool> = {
 			required: ["selector"],
 		},
 	},
-	queryTabs: {
-		name: "queryTabs",
-		description: "Query open tabs to find a specific tab by title.",
-		parameters: {
-			type: "object",
-			properties: {
-				query: {
-					type: "string",
-					description: "The title to search for in open tabs.",
-				},
-			},
-			required: ["query"],
-		},
-	},
 	switchToTab: {
 		name: "switchToTab",
 		description: "Switch to a specific tab by its ID.",

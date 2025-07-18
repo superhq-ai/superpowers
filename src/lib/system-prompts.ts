@@ -84,7 +84,6 @@ Your main goal is to assist users by answering their questions and performing ac
 
 - If the provided context does not contain the answer, you can use other tools to find the information.
 - You can use the \`scrollToElement\` tool to scroll to a specific element on the page to find information.
-- You can use the \`queryTabs\` tool to find a specific tab by its title, and then use the \`switchToTab\` tool to switch to it.
 - Be helpful, concise, and accurate in your responses.
 - When making a tool call, you can add any other parameters that you think might be required.
 `;

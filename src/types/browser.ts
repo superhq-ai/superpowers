@@ -6,7 +6,6 @@ export type MessageType =
 	| "navigateToUrl"
 	| "searchGoogle"
 	| "createReferences"
-	| "queryTabs"
 	| "switchToTab"
 	| "listTabs"
 	| "scrollToElement"
