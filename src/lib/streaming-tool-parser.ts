@@ -157,19 +157,18 @@ export class StreamingToolParser {
 		}
 
 		// Get content after the tool block
-		const fullToolBlockPattern = /```tool_code.*?\n```/s;
-		const afterToolBlockMatch = this.buffer.match(fullToolBlockPattern);
-		if (afterToolBlockMatch && afterToolBlockMatch.index !== undefined) {
-			const endIndex =
-				afterToolBlockMatch.index + afterToolBlockMatch[0].length;
-			this.contentAfterToolBlocks = this.buffer.slice(endIndex);
-		}
+		// Reset buffer and continue parsing
+		const fullToolBlockLength = endMatch.index + endMatch[0].length;
+		this.buffer = this.toolCodeContent.slice(fullToolBlockLength);
+		this.toolCodeContent = "";
+		this.processedContentLength = 0;
 
+		// No need to continue parsing, the next chunk will trigger it
 		return {
 			toolCalls,
-			isComplete: true,
+			isComplete: false, // There might be more content
 			hasToolBlock: true,
-			plannerMessage: "", // Tool execution doesn't show in planner message
+			plannerMessage: "",
 			displayMessage: "",
 		};
 	}
@@ -204,6 +203,14 @@ export class StreamingToolParser {
 		toolName?: string,
 	): void {
 		const lastStep = this.plannerSteps[this.plannerSteps.length - 1];
+
+		// If the last step was 'thinking' and this one is too, merge them.
+		if (lastStep && lastStep.type === "thinking" && type === "thinking") {
+			lastStep.content += content;
+			this.currentStepId = lastStep.id; // Ensure currentStepId points to the merged step
+			return;
+		}
+
 		if (
 			lastStep &&
 			lastStep.type === type &&
@@ -229,17 +236,7 @@ export class StreamingToolParser {
 		content: string,
 		type: PlannerStep["type"],
 	): void {
-		if (this.currentStepId) {
-			const currentStep = this.plannerSteps.find(
-				(s) => s.id === this.currentStepId,
-			);
-			if (currentStep && currentStep.type === type) {
-				currentStep.content += content;
-				return;
-			}
-		}
-
-		// No current step or type changed, create new step
+		// This function now just delegates to addPlannerStep, which contains the merging logic.
 		this.addPlannerStep(content, type);
 	}
 
