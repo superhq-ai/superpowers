@@ -2,7 +2,7 @@
 	"manifest_version": 3,
 	"name": "Superpowers AI",
 	"description": "A sidebar which gives you superpowers",
-	"version": "0.0.41",
+	"version": "0.0.42",
 	"permissions": [
 		"sidePanel",
 		"storage",
