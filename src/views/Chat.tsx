@@ -1,4 +1,3 @@
-import { Globe, Lightbulb, Zap } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ChatMessage from "../components/ChatMessage";
 import PlannerPanel from "../components/PlannerPanel";
@@ -157,40 +156,7 @@ Title:`;
 		<>
 			<div className="flex-1 flex flex-col p-4">
 				{currentMessages.length === 0 && !isLoading ? (
-					<div className="flex-1 flex items-center justify-center">
-						<div className="text-center max-w-lg">
-							<div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-								<div className="p-4 rounded-lg">
-									<div className="flex items-center">
-										<Lightbulb size={16} className="text-gray-400" />
-										<h2 className="font-semibold text-sm ml-2">Examples</h2>
-									</div>
-									<p className="text-xs text-gray-500 mt-1">
-										"Find top 5 trending repositories on github"
-									</p>
-								</div>
-								<div className="p-4 rounded-lg">
-									<div className="flex items-center">
-										<Zap size={16} className="text-gray-400" />
-										<h2 className="font-semibold text-sm ml-2">Capabilities</h2>
-									</div>
-									<p className="text-xs text-gray-500 mt-1">
-										I can search the web for real-time information.
-									</p>
-								</div>
-								<div className="p-4 rounded-lg">
-									<div className="flex items-center">
-										<Globe size={16} className="text-gray-400" />
-										<h2 className="font-semibold text-sm ml-2">Tools</h2>
-									</div>
-									<p className="text-xs text-gray-500 mt-1">
-										I have access to this web browser to help you with your
-										tasks.
-									</p>
-								</div>
-							</div>
-						</div>
-					</div>
+					<div className="flex-1 flex items-center justify-center" />
 				) : (
 					<div className="space-y-4">
 						{currentMessages
