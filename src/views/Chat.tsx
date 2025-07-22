@@ -28,6 +28,7 @@ const Chat = () => {
 		updateLastMessage,
 		setConversationTitle,
 		startConversation,
+		startNewConversation,
 		setValidationError,
 	} = useConversationStore();
 
@@ -152,6 +153,10 @@ Title:`;
 		setInputValue("");
 	};
 
+	const handleClearChat = () => {
+		startNewConversation();
+	};
+
 	return (
 		<>
 			<div className="flex-1 flex flex-col p-4">
@@ -233,6 +238,7 @@ Title:`;
 					setPrompt={setInputValue}
 					onSubmit={handleSubmit}
 					onStop={stopAgent}
+					onClearChat={handleClearChat}
 				/>
 			</div>
 		</>

@@ -23,7 +23,7 @@ export default function SidebarHeader() {
 						onClick={handleNewChat}
 					>
 						<Plus className="w-4 h-4 text-gray-600" strokeWidth={2.25} />
-						<span className="font-semibold text-gray-600">New</span>
+						<span className="font-semibold text-gray-600 text-xs">New</span>
 					</button>
 				) : (
 					<button

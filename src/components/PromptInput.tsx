@@ -1,10 +1,11 @@
 import { ArrowUp, Image, Scan, X } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { MAX_IMAGES } from "../constants";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import usePastedFiles, { AcceptedFileType } from "../hooks/usePastedFiles";
 import useScreenshot from "../hooks/useScreenshot";
 import { ModelSelect } from "./ModelSelect";
+import SlashCommands from "./SlashCommands";
 
 const PromptBox = ({
 	prompt,
@@ -12,14 +13,17 @@ const PromptBox = ({
 	setPrompt,
 	onSubmit,
 	onStop,
+	onClearChat,
 }: {
 	prompt: string;
 	isLoading: boolean;
 	setPrompt: (prompt: string) => void;
 	onSubmit: (images?: File[]) => void;
 	onStop?: () => void;
+	onClearChat?: () => void;
 }) => {
 	const { settings, setSettings } = useAppSettings();
+	const [showSlashCommands, setShowSlashCommands] = useState(false);
 	const {
 		files: images,
 		fileInputRef,
@@ -44,11 +48,28 @@ const PromptBox = ({
 	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		setPrompt(e.target.value);
+		const value = e.target.value;
+		setPrompt(value);
+		if (value.startsWith("/")) {
+			setShowSlashCommands(true);
+		} else {
+			setShowSlashCommands(false);
+		}
+
 		if (textareaRef.current) {
 			textareaRef.current.style.height = "auto";
 			textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
 		}
+	};
+
+	const handleSelectCommand = (command: string) => {
+		if (command === "clear") {
+			if (onClearChat) {
+				onClearChat();
+			}
+		}
+		setPrompt("");
+		setShowSlashCommands(false);
 	};
 
 	const handleScreenshot = async () => {
@@ -71,7 +92,13 @@ const PromptBox = ({
 
 	return (
 		<div className="p-4 relative z-10">
-			<div className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl p-3">
+			<div className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl p-3 relative">
+				{showSlashCommands && (
+					<SlashCommands
+						onSelect={handleSelectCommand}
+						query={prompt.slice(1)}
+					/>
+				)}
 				{images.length > 0 && (
 					<div className="flex gap-2 mb-2 pt-2 overflow-x-auto">
 						{images.map((img) => (
