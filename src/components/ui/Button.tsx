@@ -11,7 +11,7 @@ const Button = ({ children, variant = "default", ...props }: ButtonProps) => {
 
 	const variants = {
 		default:
-			"border-transparent shadow-sm text-light bg-primary hover:bg-primary/80",
+			"border-transparent shadow-sm text-white bg-primary hover:bg-primary/80",
 		secondary:
 			"border-transparent text-primary bg-surface hover:bg-primary/10 hover:text-primary",
 		destructive: "border-transparent text-red-700 bg-red-100 hover:bg-red-200",

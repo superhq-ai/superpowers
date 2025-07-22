@@ -5,6 +5,7 @@ const markdownComponents = {
 	h1: ({ ...props }) => <h1 className="text-2xl font-bold my-4" {...props} />,
 	h2: ({ ...props }) => <h2 className="text-xl font-bold my-3" {...props} />,
 	h3: ({ ...props }) => <h3 className="text-lg font-bold my-2" {...props} />,
+	strong: ({ ...props }) => <strong className="font-bold" {...props} />,
 	p: ({ ...props }) => <p className="mb-4" {...props} />,
 	a: ({ ...props }) => (
 		<a className="text-blue-600 hover:underline" {...props} />

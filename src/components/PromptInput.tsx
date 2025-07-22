@@ -71,7 +71,7 @@ const PromptBox = ({
 
 	return (
 		<div className="p-4 relative z-10">
-			<div className="bg-white/80 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
+			<div className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl p-3">
 				{images.length > 0 && (
 					<div className="flex gap-2 mb-2 pt-2 overflow-x-auto">
 						{images.map((img) => (
