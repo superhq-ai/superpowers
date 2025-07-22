@@ -24,7 +24,7 @@ const Popup = ({ isOpen, onClose, onConfirm, title, children }: PopupProps) => {
 	return (
 		<dialog
 			ref={popupRef}
-			className="bg-white border border-white/30 rounded-lg p-4 shadow-lg max-w-sm w-full fixed inset-0 m-auto h-fit"
+			className="bg-bg-white border border-primary/10 rounded-lg p-4 shadow-lg max-w-sm w-full fixed inset-0 m-auto h-fit text-dark"
 		>
 			<h2 className="text-lg font-bold mb-4">{title}</h2>
 			<div className="mb-6">{children}</div>

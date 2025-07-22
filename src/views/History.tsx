@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import MarkdownRenderer from "../components/MarkdownRenderer";
 import Popup from "../components/ui/Popup";
 import { useViewContext } from "../contexts/ViewContext";
 import type { Conversation } from "../lib/store";
@@ -70,8 +71,8 @@ const History = () => {
 	};
 
 	return (
-		<div className="px-4 flex flex-col h-full">
-			<div className="flex justify-between items-center mb-4">
+		<div className="flex flex-col h-full">
+			<div className="px-4 flex justify-between items-center mb-4">
 				<h1 className="text-lg font-bold">History</h1>
 				<button
 					type="button"
@@ -82,7 +83,7 @@ const History = () => {
 					Clear History
 				</button>
 			</div>
-			<div className="space-y-2 overflow-y-auto flex-grow mb-4">
+			<div className="px-4 space-y-2 overflow-y-auto flex-grow mb-4">
 				{conversations.length > 0 ? (
 					conversations.map((conversation, index) => (
 						<button
@@ -94,10 +95,12 @@ const History = () => {
 							}
 							key={conversation.id}
 							onClick={() => handleConversationClick(conversation.id)}
-							className="w-full text-left p-2 rounded-md bg-white/50 transition-colors border border-gray-200 hover:border-indigo-500 hover:text-indigo-600 focus::outline-none focus:border-indigo-500 focus:text-indigo-600"
+							className="w-full text-left p-2 rounded-md bg-white/50 transition-colors border border-gray-200 hover:border-primary hover:text-primary focus:outline-none focus:border-primary focus:text-primary"
 						>
 							<p className="font-semibold truncate">
-								{conversation.title || "Untitled Conversation"}
+								<MarkdownRenderer>
+									{conversation.title || "Untitled Conversation"}
+								</MarkdownRenderer>
 							</p>
 							<p className="text-xs text-gray-500">
 								{formatDate(new Date(conversation.lastModified))}

@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #2e6ff2;
+  --color-secondary: #c866f2;
+  --color-tertiary: #7866f2;
+  --color-surface: #f0f6ff;
+  --color-text-dark: #0d0d0d;
+  --color-text-light: #ffffff;
+  --color-bg-white: #ffffff;
+}
+
+@layer utilities {
+  .bg-primary { background-color: var(--color-primary) !important; }
+  .bg-secondary { background-color: var(--color-secondary) !important; }
+  .bg-tertiary { background-color: var(--color-tertiary) !important; }
+  .bg-surface { background-color: var(--color-surface) !important; }
+  .bg-bg-white { background-color: var(--color-bg-white) !important; }
+  .text-primary { color: var(--color-primary) !important; }
+  .text-secondary { color: var(--color-secondary) !important; }
+  .text-tertiary { color: var(--color-tertiary) !important; }
+  .text-dark { color: var(--color-text-dark) !important; }
+  .text-light { color: var(--color-text-light) !important; }
+}
+
 /* For Webkit-based browsers (Chrome, Safari) */
 ::-webkit-scrollbar {
 	width: 8px;

@@ -93,7 +93,7 @@ const Select = ({
 	return (
 		<div className="relative" ref={selectRef}>
 			<label
-				className="block text-sm font-medium text-gray-700"
+				className="block text-sm font-medium text-dark"
 				htmlFor="select-button"
 			>
 				{label}
@@ -102,7 +102,7 @@ const Select = ({
 			<button
 				id="select-button"
 				type="button"
-				className="mt-1 w-full px-3 py-2 bg-white/80 backdrop-blur-md border border-gray-300/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 sm:text-sm text-gray-900 flex justify-between items-center cursor-pointer"
+				className="mt-1 w-full px-3 py-2 bg-surface border border-primary/20 rounded-lg focus:outline-none sm:text-sm text-dark flex justify-between items-center cursor-pointer"
 				onClick={() => setIsOpen(!isOpen)}
 				onKeyDown={handleKeyDown}
 				aria-haspopup="listbox"
@@ -115,7 +115,7 @@ const Select = ({
 				<div className="flex items-center">
 					<span>{selectedOption ? selectedOption.label : "Select..."}</span>
 					{selectedOption && selectedOption.value === defaultProvider && (
-						<span className="ml-2 text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full">
+						<span className="ml-2 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
 							Default
 						</span>
 					)}
@@ -128,7 +128,7 @@ const Select = ({
 				// biome-ignore lint/a11y/useSemanticElements: Custom select component requires ARIA listbox pattern
 				<div
 					ref={listboxRef}
-					className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden"
+					className="absolute z-10 mt-1 w-full bg-bg-white border border-primary/20 rounded-lg shadow-lg overflow-hidden"
 					role="listbox"
 					aria-labelledby="select-button"
 				>
@@ -137,9 +137,9 @@ const Select = ({
 						<div
 							key={option.value}
 							id={`option-${index}`}
-							className={`w-full text-left px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center select-none ${
-								index === focusedIndex ? "bg-gray-100" : ""
-							} ${index === selectedIndex ? "bg-blue-50" : ""}`}
+							className={`w-full text-left px-3 py-2 hover:bg-primary/10 cursor-pointer flex items-center select-none ${
+								index === focusedIndex ? "bg-primary/10" : ""
+							} ${index === selectedIndex ? "bg-primary/20" : ""}`}
 							onClick={() => handleSelect(option.value)}
 							onMouseEnter={() => setFocusedIndex(index)}
 							onKeyDown={(e) => {
@@ -154,7 +154,7 @@ const Select = ({
 						>
 							<span>{option.label}</span>
 							{option.value === defaultProvider && (
-								<span className="ml-2 text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full">
+								<span className="ml-2 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
 									Default
 								</span>
 							)}
