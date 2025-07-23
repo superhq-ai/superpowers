@@ -1,9 +1,10 @@
 import { ArrowUp, Image, Scan, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { MAX_IMAGES } from "../constants";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import usePastedFiles, { AcceptedFileType } from "../hooks/usePastedFiles";
 import useScreenshot from "../hooks/useScreenshot";
+import { SLASH_COMMANDS } from "../lib/slash-commands";
 import { ModelSelect } from "./ModelSelect";
 import SlashCommands from "./SlashCommands";
 
@@ -24,6 +25,7 @@ const PromptBox = ({
 }) => {
 	const { settings, setSettings } = useAppSettings();
 	const [showSlashCommands, setShowSlashCommands] = useState(false);
+	const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
 	const {
 		files: images,
 		fileInputRef,
@@ -41,6 +43,17 @@ const PromptBox = ({
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 	const { takeScreenshot } = useScreenshot();
 
+	// Get filtered commands for navigation
+	const filteredCommands = useMemo(() => {
+		const query = prompt.startsWith("/") ? prompt.slice(1) : "";
+		if (!query) {
+			return SLASH_COMMANDS;
+		}
+		return SLASH_COMMANDS.filter((cmd) =>
+			cmd.command.toLowerCase().startsWith(query.toLowerCase()),
+		);
+	}, [prompt]);
+
 	const submit = () => {
 		if (!prompt.trim() && images.length === 0) return;
 		onSubmit(images.map((img) => img.file));
@@ -50,8 +63,10 @@ const PromptBox = ({
 	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		const value = e.target.value;
 		setPrompt(value);
+
 		if (value.startsWith("/")) {
 			setShowSlashCommands(true);
+			setSelectedCommandIndex(0); // Reset selection when showing commands
 		} else {
 			setShowSlashCommands(false);
 		}
@@ -62,14 +77,23 @@ const PromptBox = ({
 		}
 	};
 
+	const handleUpdatePrompt = (command: string) => {
+		setPrompt(command);
+		setShowSlashCommands(false);
+		setSelectedCommandIndex(0);
+	};
+
 	const handleSelectCommand = (command: string) => {
 		if (command === "clear") {
 			if (onClearChat) {
 				onClearChat();
 			}
+			setPrompt("");
+		} else {
+			setPrompt(`/${command}`);
 		}
-		setPrompt("");
 		setShowSlashCommands(false);
+		setSelectedCommandIndex(0);
 	};
 
 	const handleScreenshot = async () => {
@@ -84,8 +108,52 @@ const PromptBox = ({
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		if (showSlashCommands && filteredCommands.length > 0) {
+			if (e.key === "ArrowDown") {
+				e.preventDefault();
+				setSelectedCommandIndex((prev) =>
+					prev < filteredCommands.length - 1 ? prev + 1 : 0,
+				);
+				return;
+			}
+
+			if (e.key === "ArrowUp") {
+				e.preventDefault();
+				setSelectedCommandIndex((prev) =>
+					prev > 0 ? prev - 1 : filteredCommands.length - 1,
+				);
+				return;
+			}
+
+			if (e.key === "Tab") {
+				e.preventDefault();
+				const selectedCommand = filteredCommands[selectedCommandIndex];
+				if (selectedCommand) {
+					handleUpdatePrompt(selectedCommand.command);
+				}
+				return;
+			}
+
+			if (e.key === "Escape") {
+				e.preventDefault();
+				setShowSlashCommands(false);
+				setSelectedCommandIndex(0);
+				return;
+			}
+		}
+
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
+
+			// If slash commands are showing, select the highlighted command
+			if (showSlashCommands && filteredCommands.length > 0) {
+				const selectedCommand = filteredCommands[selectedCommandIndex];
+				if (selectedCommand) {
+					handleSelectCommand(selectedCommand.command);
+					return;
+				}
+			}
+
 			submit();
 		}
 	};
@@ -97,6 +165,8 @@ const PromptBox = ({
 					<SlashCommands
 						onSelect={handleSelectCommand}
 						query={prompt.slice(1)}
+						selectedIndex={selectedCommandIndex}
+						onSelectedIndexChange={setSelectedCommandIndex}
 					/>
 				)}
 				{images.length > 0 && (
