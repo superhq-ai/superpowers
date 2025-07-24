@@ -46,7 +46,9 @@ export const PROMPTS: Prompt[] = [
 				{
 					id: crypto.randomUUID(),
 					role: "user",
-					content: `Please summarize the following text:\n\n${args.text}`,
+					content: args.text
+						? `Please summarize the following text:\n\n${args.text}`
+						: `Summarize the page content using the \`getPageContent\` tool.`,
 				},
 			];
 		},
