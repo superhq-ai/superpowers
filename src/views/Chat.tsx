@@ -16,7 +16,6 @@ import type { LLMMessage } from "../types";
 
 const Chat = () => {
 	const [inputValue, setInputValue] = useState("");
-	const [showPlanner, setShowPlanner] = useState(true);
 	const [currentPlannerSteps, setCurrentPlannerSteps] = useState<PlannerStep[]>(
 		[],
 	);
@@ -84,7 +83,6 @@ const Chat = () => {
 		setValidationError(null);
 
 		setCurrentPlannerSteps([]);
-		setShowPlanner(true);
 
 		const attachments = await Promise.all(
 			(images || []).map(async (file) => {
@@ -225,11 +223,7 @@ Title:`;
 									<div key={message.id}>
 										{isLastAssistantMessage &&
 											currentPlannerSteps.length > 0 && (
-												<PlannerPanel
-													steps={currentPlannerSteps}
-													isVisible={showPlanner}
-													onToggle={() => setShowPlanner(!showPlanner)}
-												/>
+												<PlannerPanel steps={currentPlannerSteps} />
 											)}
 										{!(isLastAssistantMessage && isLoading) && (
 											<ChatMessage message={chatMessage} />

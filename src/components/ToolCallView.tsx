@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, FunctionSquare } from "lucide-react";
+import { ChevronDown, ChevronRight, WrenchIcon } from "lucide-react";
 import { useState } from "react";
 import type { ToolCall } from "../types/agent";
 
@@ -7,21 +7,9 @@ interface ToolCallViewProps {
 }
 
 const ToolCallView = ({ toolCalls }: ToolCallViewProps) => {
-	const [expandedCalls, setExpandedCalls] = useState<Set<string>>(new Set());
+	const [isCollapsed, setIsCollapsed] = useState(true);
 
 	if (!toolCalls || toolCalls.length === 0) return null;
-
-	const toggleExpanded = (toolCallId: string) => {
-		setExpandedCalls((prev) => {
-			const newSet = new Set(prev);
-			if (newSet.has(toolCallId)) {
-				newSet.delete(toolCallId);
-			} else {
-				newSet.add(toolCallId);
-			}
-			return newSet;
-		});
-	};
 
 	const formatArguments = (args: any) => {
 		if (!args) return "No arguments";
@@ -47,63 +35,45 @@ const ToolCallView = ({ toolCalls }: ToolCallViewProps) => {
 	};
 
 	return (
-		<div className="my-3 border border-gray-200 rounded-md bg-gray-50/50 overflow-hidden">
-			<div className="px-3 py-2 border-b border-gray-200 bg-white">
-				<span className="text-sm font-medium text-gray-700">
-					Tool Usage ({toolCalls.length})
-				</span>
-			</div>
-			<div className="p-2 space-y-1">
-				{toolCalls.map((toolCall) => {
-					const isExpanded = expandedCalls.has(toolCall.id);
+		<div className="my-3">
+			<button
+				type="button"
+				onClick={() => setIsCollapsed(!isCollapsed)}
+				className="w-full flex items-center gap-1 text-left text-sm font-medium text-gray-500 hover:text-gray-800"
+			>
+				{isCollapsed ? (
+					<ChevronRight className="w-4 h-4" />
+				) : (
+					<ChevronDown className="w-4 h-4" />
+				)}
+				<span>Tool usage</span>
+			</button>
 
-					return (
-						<div
-							key={toolCall.id}
-							className="border border-gray-200 rounded overflow-hidden bg-white"
-						>
-							<button
-								type="button"
-								onClick={() => toggleExpanded(toolCall.id)}
-								className="w-full flex items-center gap-2 p-2 text-left hover:bg-gray-50 transition-colors text-sm"
-							>
-								{isExpanded ? (
-									<ChevronDown className="w-3 h-3 text-gray-400" />
-								) : (
-									<ChevronRight className="w-3 h-3 text-gray-400" />
-								)}
-								<FunctionSquare className="w-3 h-3 text-blue-600" />
+			{!isCollapsed && (
+				<div className="mt-2 pl-5 space-y-2">
+					{toolCalls.map((toolCall) => (
+						<div key={toolCall.id}>
+							<div className="flex items-center gap-2 text-sm">
+								<WrenchIcon className="w-4 h-4 text-gray-500" />
 								<span className="font-medium text-gray-900">
 									{toolCall.name}
 								</span>
-								{!isExpanded && (
-									<span className="text-xs text-gray-500 ml-auto truncate">
-										{Object.keys(toolCall.arguments || {}).length > 0
-											? `${Object.keys(toolCall.arguments).length} param${Object.keys(toolCall.arguments).length === 1 ? "" : "s"}`
-											: "No params"}
+							</div>
+							<div className="mt-1 pl-6">
+								{Object.keys(toolCall.arguments || {}).length > 0 ? (
+									<pre className="text-xs text-gray-800 whitespace-pre-wrap overflow-x-auto bg-gray-50 p-2 rounded-md border">
+										{formatArguments(toolCall.arguments)}
+									</pre>
+								) : (
+									<span className="text-xs text-gray-500 italic">
+										No parameters
 									</span>
 								)}
-							</button>
-
-							{isExpanded && (
-								<div className="border-t bg-gray-50 p-2">
-									<div className="bg-white rounded border p-2">
-										{Object.keys(toolCall.arguments || {}).length > 0 ? (
-											<pre className="text-xs text-gray-800 whitespace-pre-wrap overflow-x-auto">
-												{formatArguments(toolCall.arguments)}
-											</pre>
-										) : (
-											<span className="text-xs text-gray-500 italic">
-												No parameters
-											</span>
-										)}
-									</div>
-								</div>
-							)}
+							</div>
 						</div>
-					);
-				})}
-			</div>
+					))}
+				</div>
+			)}
 		</div>
 	);
 };

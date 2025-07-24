@@ -1,59 +1,43 @@
-import { Brain, CheckCircle, Circle, Loader2, Search } from "lucide-react";
+import {
+	Brain,
+	CheckCircle,
+	ChevronDown,
+	ChevronRight,
+	Circle,
+	Loader2,
+} from "lucide-react";
+import { useState } from "react";
 import type { PlannerStep } from "../lib/streaming-tool-parser";
 import { formatTime } from "../lib/utils";
 import MarkdownRenderer from "./MarkdownRenderer";
 
 interface PlannerPanelProps {
 	steps: PlannerStep[];
-	isVisible: boolean;
-	onToggle: () => void;
 }
 
-const PlannerPanel: React.FC<PlannerPanelProps> = ({
-	steps,
-	isVisible,
-	onToggle,
-}) => {
+const PlannerPanel: React.FC<PlannerPanelProps> = ({ steps }) => {
+	const [isCollapsed, setIsCollapsed] = useState(true);
+
 	const getStepIcon = (step: PlannerStep) => {
 		switch (step.type) {
 			case "thinking":
-				return <Brain className="w-4 h-4 text-blue-500" />;
+				return <Brain className="w-4 h-4 text-gray-500" />;
 			case "tool_execution":
 				if (step.isCompleted) {
-					return <CheckCircle className="w-4 h-4 text-green-500" />;
+					return <CheckCircle className="w-4 h-4 text-gray-500" />;
 				}
-				return <Loader2 className="w-4 h-4 text-yellow-500 animate-spin" />;
+				return <Loader2 className="w-4 h-4 text-gray-500 animate-spin" />;
 			case "tool_result":
-				return <CheckCircle className="w-4 h-4 text-green-500" />;
+				return <CheckCircle className="w-4 h-4 text-gray-500" />;
 			default:
 				return <Circle className="w-4 h-4 text-gray-400" />;
 		}
 	};
 
-	const getStepColor = (step: PlannerStep) => {
-		switch (step.type) {
-			case "thinking":
-				return "text-blue-500";
-			case "tool_execution":
-				return step.isCompleted ? "text-green-500" : "text-yellow-500";
-			case "tool_result":
-				return "text-gray-500";
-			default:
-				return "text-gray-400";
-		}
-	};
-
-	const getTruncatedToolResult = (toolResult: unknown) => {
-		const resultString =
-			typeof toolResult === "string"
-				? toolResult
-				: JSON.stringify(toolResult, null, 2);
-
-		if (resultString.length > 200) {
-			return `${resultString.slice(0, 200)}...`;
-		}
-
-		return resultString;
+	const formatToolResult = (toolResult: unknown) => {
+		return typeof toolResult === "string"
+			? toolResult
+			: JSON.stringify(toolResult, null, 2);
 	};
 
 	if (steps.length === 0) {
@@ -61,33 +45,28 @@ const PlannerPanel: React.FC<PlannerPanelProps> = ({
 	}
 
 	return (
-		<div className="mb-4">
+		<div className="my-3">
 			<button
 				type="button"
-				onClick={onToggle}
-				className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700 mb-2"
+				onClick={() => setIsCollapsed(!isCollapsed)}
+				className="w-full flex items-center gap-1 text-left text-sm font-medium text-gray-500 hover:text-gray-800"
 			>
-				<Search className="w-3.5 h-3.5" />
-				<span>{steps.length} steps</span>
-				<div className="flex-1 border-b border-gray-200" />
-				<span className="text-xs text-gray-400 hover:text-gray-600">
-					{isVisible ? "Hide" : "Show"}
-				</span>
+				{isCollapsed ? (
+					<ChevronRight className="w-4 h-4" />
+				) : (
+					<ChevronDown className="w-4 h-4" />
+				)}
+				<span>Planner</span>
 			</button>
 
-			{isVisible && (
-				<div className="bg-gray-50/50 rounded-lg">
-					<div className="space-y-1">
-						{steps.map((step) => (
-							<div
-								key={step.id}
-								className={`flex items-start gap-3 p-2.5 rounded-lg transition-all duration-200`}
-							>
-								<div className={`flex-shrink-0 mt-0.5 ${getStepColor(step)}`}>
-									{getStepIcon(step)}
-								</div>
-								<div className="flex-1 min-w-0">
-									<div className="flex items-center gap-2 mb-1">
+			{!isCollapsed && (
+				<div className="mt-2 pl-5 space-y-4">
+					{steps.map((step) => (
+						<div key={step.id} className="flex items-start gap-3">
+							<div className="flex-shrink-0 mt-0.5">{getStepIcon(step)}</div>
+							<div className="flex-1 min-w-0">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-2">
 										<span className="text-sm font-medium text-gray-800">
 											{step.type === "thinking" && "Thinking"}
 											{step.type === "tool_execution" &&
@@ -96,28 +75,28 @@ const PlannerPanel: React.FC<PlannerPanelProps> = ({
 												`Result from ${step.toolName}`}
 										</span>
 										{step.type === "tool_execution" && !step.isCompleted && (
-											<span className="text-xs text-yellow-500">
-												Running...
-											</span>
+											<span className="text-xs text-gray-500">Running...</span>
 										)}
 									</div>
-									<div className="text-sm text-gray-600 whitespace-pre-wrap">
-										<MarkdownRenderer>{step.content}</MarkdownRenderer>
+									<div className="flex-shrink-0 text-xs text-gray-400">
+										{formatTime(new Date(step.timestamp))}
 									</div>
-									{step.toolResult && (
-										<div className="mt-2 p-2 bg-white rounded border text-xs text-gray-500">
-											<pre className="whitespace-pre-wrap">
-												{getTruncatedToolResult(step.toolResult)}
-											</pre>
-										</div>
-									)}
 								</div>
-								<div className="flex-shrink-0 text-xs text-gray-400">
-									{formatTime(new Date(step.timestamp))}
+
+								<div className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">
+									<MarkdownRenderer>{step.content}</MarkdownRenderer>
 								</div>
+
+								{step.toolResult && (
+									<div className="mt-2 text-xs text-gray-500">
+										<pre className="whitespace-pre-wrap bg-gray-50 p-2 rounded-md border max-h-40 overflow-y-auto">
+											{formatToolResult(step.toolResult)}
+										</pre>
+									</div>
+								)}
 							</div>
-						))}
-					</div>
+						</div>
+					))}
 				</div>
 			)}
 		</div>
