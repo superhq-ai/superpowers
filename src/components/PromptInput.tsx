@@ -6,6 +6,7 @@ import usePastedFiles, { AcceptedFileType } from "../hooks/usePastedFiles";
 import useScreenshot from "../hooks/useScreenshot";
 import { PROMPTS } from "../lib/prompts";
 import { ModelSelect } from "./ModelSelect";
+import Portal from "./Portal";
 import SlashCommands from "./SlashCommands";
 
 const PromptBox = ({
@@ -155,12 +156,15 @@ const PromptBox = ({
 		<div className="relative z-10">
 			<div className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl p-3 relative">
 				{showSlashCommands && (
-					<SlashCommands
-						onSelect={handleSelectCommand}
-						query={prompt.slice(1)}
-						selectedIndex={selectedCommandIndex}
-						onSelectedIndexChange={setSelectedCommandIndex}
-					/>
+					<Portal>
+						<SlashCommands
+							onSelect={handleSelectCommand}
+							query={prompt.slice(1)}
+							selectedIndex={selectedCommandIndex}
+							onSelectedIndexChange={setSelectedCommandIndex}
+							target={textareaRef}
+						/>
+					</Portal>
 				)}
 				{images.length > 0 && (
 					<div className="flex gap-2 mb-2 pt-2 overflow-x-auto">

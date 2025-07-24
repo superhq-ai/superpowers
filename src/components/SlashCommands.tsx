@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { type RefObject, useEffect, useMemo, useState } from "react";
 import { PROMPTS } from "../lib/prompts";
 
 const SlashCommands = ({
@@ -6,12 +6,16 @@ const SlashCommands = ({
 	query,
 	selectedIndex,
 	onSelectedIndexChange,
+	target,
 }: {
 	onSelect: (command: string) => void;
 	query: string;
 	selectedIndex: number;
 	onSelectedIndexChange: (index: number) => void;
+	target: RefObject<HTMLElement | null>;
 }) => {
+	const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+
 	const filteredCommands = useMemo(() => {
 		if (!query) {
 			return PROMPTS;
@@ -28,12 +32,45 @@ const SlashCommands = ({
 		}
 	}, [filteredCommands.length, selectedIndex, onSelectedIndexChange]);
 
+	useEffect(() => {
+		const calculatePosition = () => {
+			if (target.current) {
+				const rect = target.current.getBoundingClientRect();
+				setPosition({
+					top: rect.top,
+					left: rect.left,
+					width: rect.width,
+				});
+			}
+		};
+
+		calculatePosition();
+
+		const handleResize = () => calculatePosition();
+		window.addEventListener("resize", handleResize);
+
+		return () => {
+			window.removeEventListener("resize", handleResize);
+		};
+	}, [target]);
+
 	if (filteredCommands.length === 0) {
 		return null;
 	}
 
 	return (
-		<div className="bg-white border border-gray-200 rounded-lg shadow-sm p-1 absolute bottom-full left-0 mb-1 w-full">
+		<div
+			className="bg-white border border-gray-200 rounded-lg shadow-sm p-1"
+			style={{
+				position: "fixed",
+				top: position.top,
+				left: position.left,
+				width: position.width,
+				transform: "translateY(-100%)",
+				marginBottom: "0.25rem",
+				zIndex: 100,
+			}}
+		>
 			<div className="flex flex-col">
 				{filteredCommands.map(
 					(cmd, index) =>

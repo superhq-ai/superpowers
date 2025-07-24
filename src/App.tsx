@@ -27,6 +27,7 @@ const App = () => {
 			<ViewProvider>
 				<TabContextProvider>
 					<AppContent />
+					<div id="portal-root" />
 				</TabContextProvider>
 			</ViewProvider>
 		</AppSettingsProvider>
