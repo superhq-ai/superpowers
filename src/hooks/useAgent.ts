@@ -25,6 +25,7 @@ export const useAgent = (
 	const runAgent = async (
 		history: AgentMessage[],
 		llmOptions: UseLLMOptions,
+		context?: any,
 	) => {
 		if (isLoading) return;
 
@@ -40,16 +41,21 @@ export const useAgent = (
 				console.groupEnd();
 			}
 
-			const response = await agent.run(history, llmOptions, (progress) => {
-				if (progress.message && onMessage) {
-					onMessage(progress.message);
-				}
+			const response = await agent.run(
+				history,
+				llmOptions,
+				(progress) => {
+					if (progress.message && onMessage) {
+						onMessage(progress.message);
+					}
 
-				if (progress.plannerSteps) {
-					setPlannerSteps(progress.plannerSteps);
-					onPlannerUpdate?.(progress.plannerSteps);
-				}
-			});
+					if (progress.plannerSteps) {
+						setPlannerSteps(progress.plannerSteps);
+						onPlannerUpdate?.(progress.plannerSteps);
+					}
+				},
+				context,
+			);
 
 			if (onComplete) {
 				onComplete(response);

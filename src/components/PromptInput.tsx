@@ -152,7 +152,7 @@ const PromptBox = ({
 	};
 
 	return (
-		<div className="p-4 relative z-10">
+		<div className="relative z-10">
 			<div className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl p-3 relative">
 				{showSlashCommands && (
 					<SlashCommands

@@ -2,6 +2,7 @@ import SidebarContainer from "./components/SidebarContainer";
 import SidebarHeader from "./components/SidebarHeader";
 import ViewContainer from "./components/ViewContainer";
 import { AppSettingsProvider } from "./contexts/AppSettingsContext";
+import { TabContextProvider } from "./contexts/TabContext";
 import { ViewProvider } from "./contexts/ViewContext";
 import { useView } from "./hooks/useView";
 
@@ -24,7 +25,9 @@ const App = () => {
 	return (
 		<AppSettingsProvider>
 			<ViewProvider>
-				<AppContent />
+				<TabContextProvider>
+					<AppContent />
+				</TabContextProvider>
 			</ViewProvider>
 		</AppSettingsProvider>
 	);

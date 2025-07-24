@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import ChatMessage from "../components/ChatMessage";
+import ContextRibbon from "../components/ContextRibbon";
 import EmptyState from "../components/EmptyState";
 import PlannerPanel from "../components/PlannerPanel";
 import PromptBox from "../components/PromptInput";
 import { useAppSettings } from "../contexts/AppSettingsContext";
+import { useTabContext } from "../contexts/TabContext";
 import { useAgent } from "../hooks/useAgent";
 import { agent } from "../lib/agent-instance";
 import { PROMPTS } from "../lib/prompts";
@@ -16,6 +18,7 @@ import type { LLMMessage } from "../types";
 
 const Chat = () => {
 	const [inputValue, setInputValue] = useState("");
+	const { contextUrl, contextTitle, contextTabId } = useTabContext();
 	const [currentPlannerSteps, setCurrentPlannerSteps] = useState<PlannerStep[]>(
 		[],
 	);
@@ -127,12 +130,16 @@ const Chat = () => {
 						},
 					]);
 					const history = [...currentMessages, userMessage, ...messages];
-					runAgent(history, {
-						provider: settings.selectedProvider,
-						model: settings.model,
-						apiKey: settings.apiKeys[settings.selectedProvider],
-						attachments,
-					});
+					runAgent(
+						history,
+						{
+							provider: settings.selectedProvider,
+							model: settings.model,
+							apiKey: settings.apiKeys[settings.selectedProvider],
+							attachments,
+						},
+						{ url: contextUrl, title: contextTitle, id: contextTabId },
+					);
 				} else {
 					// For direct responses, just add the message from the prompt
 					addMessages(messages);
@@ -187,12 +194,16 @@ Title:`;
 		}
 
 		const history = [...currentMessages, userMessage];
-		runAgent(history, {
-			provider: settings.selectedProvider,
-			model: settings.model,
-			apiKey: settings.apiKeys[settings.selectedProvider],
-			attachments,
-		});
+		runAgent(
+			history,
+			{
+				provider: settings.selectedProvider,
+				model: settings.model,
+				apiKey: settings.apiKeys[settings.selectedProvider],
+				attachments,
+			},
+			{ url: contextUrl, title: contextTitle, id: contextTabId },
+		);
 		setInputValue("");
 	};
 
@@ -266,14 +277,17 @@ Title:`;
 			)}
 
 			<div ref={messagesEndRef} />
-			<div className="sticky bottom-0 left-0 right-0 z-50">
-				<PromptBox
-					prompt={inputValue}
-					isLoading={isLoading}
-					setPrompt={setInputValue}
-					onSubmit={handleSubmit}
-					onStop={stopAgent}
-				/>
+			<div className="sticky bottom-0 left-0 right-0 z-50 p-4">
+				<div className="bg-gray-100 overflow-hidden rounded-2xl">
+					<ContextRibbon url={contextUrl} title={contextTitle} />
+					<PromptBox
+						prompt={inputValue}
+						isLoading={isLoading}
+						setPrompt={setInputValue}
+						onSubmit={handleSubmit}
+						onStop={stopAgent}
+					/>
+				</div>
 			</div>
 		</>
 	);
