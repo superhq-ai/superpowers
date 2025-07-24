@@ -4,7 +4,7 @@ import { MAX_IMAGES } from "../constants";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import usePastedFiles, { AcceptedFileType } from "../hooks/usePastedFiles";
 import useScreenshot from "../hooks/useScreenshot";
-import { SLASH_COMMANDS } from "../lib/slash-commands";
+import { PROMPTS } from "../lib/prompts";
 import { ModelSelect } from "./ModelSelect";
 import SlashCommands from "./SlashCommands";
 
@@ -14,14 +14,12 @@ const PromptBox = ({
 	setPrompt,
 	onSubmit,
 	onStop,
-	onClearChat,
 }: {
 	prompt: string;
 	isLoading: boolean;
 	setPrompt: (prompt: string) => void;
 	onSubmit: (images?: File[]) => void;
 	onStop?: () => void;
-	onClearChat?: () => void;
 }) => {
 	const { settings, setSettings } = useAppSettings();
 	const [showSlashCommands, setShowSlashCommands] = useState(false);
@@ -47,10 +45,10 @@ const PromptBox = ({
 	const filteredCommands = useMemo(() => {
 		const query = prompt.startsWith("/") ? prompt.slice(1) : "";
 		if (!query) {
-			return SLASH_COMMANDS;
+			return PROMPTS;
 		}
-		return SLASH_COMMANDS.filter((cmd) =>
-			cmd.command.toLowerCase().startsWith(query.toLowerCase()),
+		return PROMPTS.filter((p) =>
+			p.name.toLowerCase().startsWith(query.toLowerCase()),
 		);
 	}, [prompt]);
 
@@ -58,6 +56,7 @@ const PromptBox = ({
 		if (!prompt.trim() && images.length === 0) return;
 		onSubmit(images.map((img) => img.file));
 		resetImages();
+		setShowSlashCommands(false);
 	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -84,16 +83,10 @@ const PromptBox = ({
 	};
 
 	const handleSelectCommand = (command: string) => {
-		if (command === "clear") {
-			if (onClearChat) {
-				onClearChat();
-			}
-			setPrompt("");
-		} else {
-			setPrompt(`/${command}`);
-		}
+		setPrompt(`/${command} `);
 		setShowSlashCommands(false);
 		setSelectedCommandIndex(0);
+		textareaRef.current?.focus();
 	};
 
 	const handleScreenshot = async () => {
@@ -129,7 +122,7 @@ const PromptBox = ({
 				e.preventDefault();
 				const selectedCommand = filteredCommands[selectedCommandIndex];
 				if (selectedCommand) {
-					handleUpdatePrompt(selectedCommand.command);
+					handleUpdatePrompt(selectedCommand.name);
 				}
 				return;
 			}
@@ -149,7 +142,7 @@ const PromptBox = ({
 			if (showSlashCommands && filteredCommands.length > 0) {
 				const selectedCommand = filteredCommands[selectedCommandIndex];
 				if (selectedCommand) {
-					handleSelectCommand(selectedCommand.command);
+					handleSelectCommand(selectedCommand.name);
 					return;
 				}
 			}

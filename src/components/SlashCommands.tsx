@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { SLASH_COMMANDS } from "../lib/slash-commands";
+import { PROMPTS } from "../lib/prompts";
 
 const SlashCommands = ({
 	onSelect,
@@ -14,10 +14,10 @@ const SlashCommands = ({
 }) => {
 	const filteredCommands = useMemo(() => {
 		if (!query) {
-			return SLASH_COMMANDS;
+			return PROMPTS;
 		}
-		return SLASH_COMMANDS.filter((cmd) =>
-			cmd.command.toLowerCase().startsWith(query.toLowerCase()),
+		return PROMPTS.filter((p) =>
+			p.name.toLowerCase().startsWith(query.toLowerCase()),
 		);
 	}, [query]);
 
@@ -40,15 +40,15 @@ const SlashCommands = ({
 						cmd && (
 							<button
 								type="button"
-								key={cmd.command}
-								className={`flex items-center gap-2 p-1.5 rounded-md cursor-pointer text-left transition-colors ${
+								key={cmd.name}
+								className={`flex items-center gap-2 p-1.5 rounded-md cursor-pointer text-left transition-colors border ${
 									index === selectedIndex
-										? "bg-blue-100 border border-blue-200"
-										: "hover:bg-gray-100"
+										? "bg-blue-100 border-blue-200"
+										: "border-transparent hover:bg-gray-100"
 								}`}
-								onClick={() => onSelect(cmd.command)}
+								onClick={() => onSelect(cmd.name)}
 							>
-								<div className="text-sm font-medium">{cmd.command}</div>
+								<div className="text-sm font-medium">{cmd.name}</div>
 								<div className="text-xs text-gray-500">{cmd.description}</div>
 							</button>
 						),

@@ -45,6 +45,7 @@ interface ConversationState {
 	currentConversationId: string | null;
 	validationError: string | null;
 	addMessage: (message: Message) => void;
+	addMessages: (messages: Message[]) => void;
 	updateLastMessage: (message: Partial<Message>) => void;
 	getConversations: (options: { limit: number; cursor?: number }) => {
 		conversations: Conversation[];
@@ -74,6 +75,26 @@ export const useConversationStore = createIndexDBStore<ConversationState>({
 			const newConversation = {
 				...conversation,
 				messages: [...conversation.messages, message],
+				lastModified: Date.now(),
+			};
+
+			set({
+				conversations: {
+					...conversations,
+					[currentConversationId]: newConversation,
+				},
+			});
+		},
+		addMessages: (messages: Message[]) => {
+			const { conversations, currentConversationId } = get();
+			if (!currentConversationId) return;
+
+			const conversation = conversations[currentConversationId];
+			if (!conversation) return;
+
+			const newConversation = {
+				...conversation,
+				messages: [...conversation.messages, ...messages],
 				lastModified: Date.now(),
 			};
 

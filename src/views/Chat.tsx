@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import ChatMessage from "../components/ChatMessage";
+import EmptyState from "../components/EmptyState";
 import PlannerPanel from "../components/PlannerPanel";
 import PromptBox from "../components/PromptInput";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import { useAgent } from "../hooks/useAgent";
 import { agent } from "../lib/agent-instance";
+import { PROMPTS } from "../lib/prompts";
 import { TOOL_CALL_JSON_CODE_BLOCK_REGEX } from "../lib/regex";
 import { useConversationStore } from "../lib/store";
 import type { PlannerStep } from "../lib/streaming-tool-parser";
@@ -24,11 +26,10 @@ const Chat = () => {
 		conversations,
 		currentConversationId,
 		validationError,
-		addMessage,
+		addMessages,
 		updateLastMessage,
 		setConversationTitle,
 		startConversation,
-		startNewConversation,
 		setValidationError,
 	} = useConversationStore();
 
@@ -104,13 +105,55 @@ const Chat = () => {
 			attachments,
 		};
 
+		if (inputValue.startsWith("/")) {
+			const [command, ...args] = inputValue.slice(1).split(" ");
+			const prompt = PROMPTS.find((p) => p.name === command);
+
+			if (prompt) {
+				// Add user's slash command to the conversation
+				if (!currentConversationId) {
+					startConversation(userMessage);
+				} else {
+					addMessages([userMessage]);
+				}
+
+				const messages = await prompt.getMessages({ text: args.join(" ") });
+
+				if (prompt.llmTrigger) {
+					// For LLM triggers, add an empty assistant message and run the agent
+					addMessages([
+						{
+							id: crypto.randomUUID(),
+							role: "assistant",
+							content: "",
+						},
+					]);
+					const history = [...currentMessages, userMessage, ...messages];
+					runAgent(history, {
+						provider: settings.selectedProvider,
+						model: settings.model,
+						apiKey: settings.apiKeys[settings.selectedProvider],
+						attachments,
+					});
+				} else {
+					// For direct responses, just add the message from the prompt
+					addMessages(messages);
+				}
+
+				setInputValue("");
+				return;
+			}
+		}
+
 		if (!currentConversationId) {
 			const newConversationId = startConversation(userMessage);
-			addMessage({
-				id: crypto.randomUUID(),
-				role: "assistant" as const,
-				content: "",
-			});
+			addMessages([
+				{
+					id: crypto.randomUUID(),
+					role: "assistant" as const,
+					content: "",
+				},
+			]);
 
 			// Generate title in the background
 			(async () => {
@@ -135,12 +178,14 @@ Title:`;
 				}
 			})();
 		} else {
-			addMessage(userMessage);
-			addMessage({
-				id: crypto.randomUUID(),
-				role: "assistant" as const,
-				content: "",
-			});
+			addMessages([
+				userMessage,
+				{
+					id: crypto.randomUUID(),
+					role: "assistant" as const,
+					content: "",
+				},
+			]);
 		}
 
 		const history = [...currentMessages, userMessage];
@@ -153,15 +198,11 @@ Title:`;
 		setInputValue("");
 	};
 
-	const handleClearChat = () => {
-		startNewConversation();
-	};
-
 	return (
 		<>
 			<div className="flex-1 flex flex-col p-4">
 				{currentMessages.length === 0 && !isLoading ? (
-					<div className="flex-1 flex items-center justify-center" />
+					<EmptyState />
 				) : (
 					<div className="space-y-4">
 						{currentMessages
@@ -238,7 +279,6 @@ Title:`;
 					setPrompt={setInputValue}
 					onSubmit={handleSubmit}
 					onStop={stopAgent}
-					onClearChat={handleClearChat}
 				/>
 			</div>
 		</>
