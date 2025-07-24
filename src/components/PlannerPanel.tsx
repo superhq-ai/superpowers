@@ -6,7 +6,7 @@ import {
 	Circle,
 	Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PlannerStep } from "../lib/streaming-tool-parser";
 import { formatTime } from "../lib/utils";
 import MarkdownRenderer from "./MarkdownRenderer";
@@ -83,9 +83,10 @@ const PlannerPanel: React.FC<PlannerPanelProps> = ({ steps }) => {
 									</div>
 								</div>
 
-								<div className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">
-									<MarkdownRenderer>{step.content}</MarkdownRenderer>
-								</div>
+								<ThinkingContent
+									content={step.content}
+									isThinking={step.type === "thinking"}
+								/>
 
 								{step.toolResult && (
 									<div className="mt-2 text-xs text-gray-500">
@@ -99,6 +100,36 @@ const PlannerPanel: React.FC<PlannerPanelProps> = ({ steps }) => {
 					))}
 				</div>
 			)}
+		</div>
+	);
+};
+
+const ThinkingContent = ({
+	content,
+	isThinking,
+}: {
+	content: string;
+	isThinking: boolean;
+}) => {
+	const ref = useRef<HTMLDivElement>(null);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: scrollHeight depends on content
+	useEffect(() => {
+		if (ref.current) {
+			ref.current.scrollTop = ref.current.scrollHeight;
+		}
+	}, [content]);
+
+	return (
+		<div
+			ref={ref}
+			className={`mt-1 text-sm text-gray-600 whitespace-pre-wrap ${
+				isThinking
+					? "max-h-40 overflow-y-auto bg-gray-50 p-2 rounded-md border"
+					: ""
+			}`}
+		>
+			<MarkdownRenderer>{content}</MarkdownRenderer>
 		</div>
 	);
 };
