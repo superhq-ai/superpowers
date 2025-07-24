@@ -122,7 +122,7 @@ const PromptBox = ({
 				e.preventDefault();
 				const selectedCommand = filteredCommands[selectedCommandIndex];
 				if (selectedCommand) {
-					handleUpdatePrompt(selectedCommand.name);
+					handleUpdatePrompt(`/${selectedCommand.name}`);
 				}
 				return;
 			}
