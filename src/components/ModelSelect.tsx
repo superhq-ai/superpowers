@@ -38,7 +38,9 @@ export function ModelSelect({
 			}
 
 			// Check if click is on any dropdown content
-			const dropdownElements = document.querySelectorAll('[data-dropdown-content]');
+			const dropdownElements = document.querySelectorAll(
+				"[data-dropdown-content]",
+			);
 			for (const element of dropdownElements) {
 				if (element.contains(target)) {
 					return;
