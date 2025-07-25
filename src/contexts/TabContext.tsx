@@ -18,7 +18,7 @@ export const TabContextProvider: React.FC<{ children: React.ReactNode }> = ({
 	const [contextTabId, setContextTabId] = useState<number | null>(null);
 
 	useEffect(() => {
-		const handleMessage = (request: { type: string; data?: any }) => {
+		const handleMessage = (request: { type: string; data?: unknown }) => {
 			if (request.type === RUNTIME_MESSAGES.SET_CONTEXT) {
 				setContextUrl(request.data.url);
 				setContextTitle(request.data.title);

@@ -8,6 +8,10 @@ import { useAppSettings } from "../contexts/AppSettingsContext";
 import { useTabContext } from "../contexts/TabContext";
 import { useAgent } from "../hooks/useAgent";
 import { agent } from "../lib/agent-instance";
+import {
+	handleModelCommand,
+	type ModelCommandResult,
+} from "../lib/modelCommand";
 import { PROMPTS } from "../lib/prompts";
 import { TOOL_CALL_JSON_CODE_BLOCK_REGEX } from "../lib/regex";
 import { useConversationStore } from "../lib/store";
@@ -15,6 +19,7 @@ import type { PlannerStep } from "../lib/streaming-tool-parser";
 import { fileToDataURL, readStream } from "../lib/utils";
 import { streamLlm } from "../services/llm";
 import type { LLMMessage } from "../types";
+import type { AgentMessage } from "../types/agent";
 
 const Chat = () => {
 	const [inputValue, setInputValue] = useState("");
@@ -23,7 +28,7 @@ const Chat = () => {
 		[],
 	);
 
-	const { settings } = useAppSettings();
+	const { settings, setSettings } = useAppSettings();
 	const {
 		conversations,
 		currentConversationId,
@@ -108,6 +113,61 @@ const Chat = () => {
 
 		if (inputValue.startsWith("/")) {
 			const [command, ...args] = inputValue.slice(1).split(" ");
+
+			// Handle model command specially
+			if (command === "model") {
+				const action = args.join(" ");
+
+				try {
+					const result: ModelCommandResult = await handleModelCommand(
+						action,
+						settings,
+						setSettings,
+					);
+
+					// Add user's command to conversation
+					if (!currentConversationId) {
+						startConversation(userMessage);
+					} else {
+						addMessages([userMessage]);
+					}
+
+					// Add system response
+					const systemMessage: AgentMessage = {
+						id: crypto.randomUUID(),
+						role: "assistant",
+						content: result.message,
+					};
+
+					addMessages([systemMessage]);
+
+					// If model changed, show a brief confirmation
+					if (result.modelChanged && result.newModel) {
+						console.log(`Model switched to: ${result.newModel}`);
+					}
+				} catch (error) {
+					console.error("Model command error:", error);
+
+					// Add error message to conversation
+					if (!currentConversationId) {
+						startConversation(userMessage);
+					} else {
+						addMessages([userMessage]);
+					}
+
+					const errorMessage: AgentMessage = {
+						id: crypto.randomUUID(),
+						role: "assistant",
+						content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+					};
+
+					addMessages([errorMessage]);
+				}
+
+				setInputValue("");
+				return;
+			}
+
 			const prompt = PROMPTS.find((p) => p.name === command);
 
 			if (prompt) {
@@ -137,6 +197,7 @@ const Chat = () => {
 							model: settings.model,
 							apiKey: settings.apiKeys[settings.selectedProvider],
 							attachments,
+							customUrl: settings.customUrls?.[settings.selectedProvider],
 						},
 						{ url: contextUrl, title: contextTitle, id: contextTabId },
 					);
@@ -175,6 +236,7 @@ Title:`;
 						provider: settings.selectedProvider,
 						apiKey: settings.apiKeys[settings.selectedProvider],
 						model: settings.model,
+						customUrl: settings.customUrls?.[settings.selectedProvider],
 					});
 					const title = await readStream(stream);
 					setConversationTitle(newConversationId, title.trim());
@@ -201,6 +263,7 @@ Title:`;
 				model: settings.model,
 				apiKey: settings.apiKeys[settings.selectedProvider],
 				attachments,
+				customUrl: settings.customUrls?.[settings.selectedProvider],
 			},
 			{ url: contextUrl, title: contextTitle, id: contextTabId },
 		);

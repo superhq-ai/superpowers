@@ -10,8 +10,10 @@ interface SelectProps {
 	options: Option[];
 	value: string;
 	onChange: (value: string) => void;
-	label: string;
+	label?: string;
 	defaultProvider?: string;
+	disabled?: boolean;
+	placeholder?: string;
 }
 
 const Select = ({
@@ -20,6 +22,8 @@ const Select = ({
 	onChange,
 	label,
 	defaultProvider,
+	disabled = false,
+	placeholder = "Select...",
 }: SelectProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const selectRef = useRef<HTMLDivElement>(null);
@@ -92,28 +96,31 @@ const Select = ({
 
 	return (
 		<div className="relative" ref={selectRef}>
-			<label
-				className="block text-sm font-medium text-dark"
-				htmlFor="select-button"
-			>
-				{label}
-			</label>
+			{label && (
+				<label
+					className="block text-sm font-medium text-dark"
+					htmlFor="select-button"
+				>
+					{label}
+				</label>
+			)}
 			{/** biome-ignore lint/a11y/useAriaPropsSupportedByRole: Custom select component requires ARIA listbox pattern to ensure proper accessibility and keyboard navigation. */}
 			<button
 				id="select-button"
 				type="button"
-				className="mt-1 w-full px-3 py-2 bg-surface border border-primary/20 rounded-lg focus:outline-none sm:text-sm text-dark flex justify-between items-center cursor-pointer"
-				onClick={() => setIsOpen(!isOpen)}
-				onKeyDown={handleKeyDown}
+				className={`${label ? "mt-1" : ""} w-full px-3 py-2 bg-surface border border-primary/20 rounded-lg focus:outline-none sm:text-sm text-dark flex justify-between items-center ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+				onClick={() => !disabled && setIsOpen(!isOpen)}
+				onKeyDown={disabled ? undefined : handleKeyDown}
 				aria-haspopup="listbox"
 				aria-expanded={isOpen}
 				aria-labelledby="select-button"
 				aria-activedescendant={
 					isOpen && focusedIndex >= 0 ? `option-${focusedIndex}` : undefined
 				}
+				disabled={disabled}
 			>
 				<div className="flex items-center">
-					<span>{selectedOption ? selectedOption.label : "Select..."}</span>
+					<span>{selectedOption ? selectedOption.label : placeholder}</span>
 					{selectedOption && selectedOption.value === defaultProvider && (
 						<span className="ml-2 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
 							Default

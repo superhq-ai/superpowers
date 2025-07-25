@@ -1,5 +1,6 @@
 import { CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
+import ModelSelector from "../components/ModelSelector";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Select from "../components/ui/Select";
@@ -33,6 +34,19 @@ const Settings = () => {
 				[draftSettings.selectedProvider]: e.target.value,
 			},
 		});
+	};
+
+	const handleCustomUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setDraftSettings({
+			customUrls: {
+				...draftSettings.customUrls,
+				[draftSettings.selectedProvider]: e.target.value,
+			},
+		});
+	};
+
+	const handleModelChange = (model: string) => {
+		setDraftSettings({ model });
 	};
 
 	const handleSave = () => {
@@ -93,49 +107,88 @@ const Settings = () => {
 				)}
 			</div>
 
-			<div>
-				<div className="relative">
+			{/* API URL - only for providers that have a defaultUrl (like Ollama) */}
+			{PROVIDERS[draftSettings.selectedProvider]?.defaultUrl && (
+				<div className="mb-4">
 					<Input
-						id="api-key"
-						name="api-key"
-						label={`${PROVIDERS[draftSettings.selectedProvider].label} API Key`}
-						type={showApiKey ? "text" : "password"}
+						id="api-url"
+						name="api-url"
+						label={`${PROVIDERS[draftSettings.selectedProvider].label} URL`}
+						type="text"
 						value={
-							draftSettings.apiKeys?.[draftSettings.selectedProvider] || ""
+							draftSettings.customUrls?.[draftSettings.selectedProvider] ||
+							PROVIDERS[draftSettings.selectedProvider].defaultUrl ||
+							""
 						}
-						onChange={handleApiKeyChange}
+						onChange={handleCustomUrlChange}
+						placeholder={PROVIDERS[draftSettings.selectedProvider].defaultUrl}
 					/>
-					<div className="absolute inset-y-0 right-0 pr-3 flex items-center top-6">
-						<div className="flex items-center gap-x-2">
-							{!draftSettings.apiKeys?.[draftSettings.selectedProvider] && (
+					<p className="text-xs text-gray-500 mt-1">
+						{PROVIDERS[draftSettings.selectedProvider]?.isLocal
+							? `Make sure ${PROVIDERS[draftSettings.selectedProvider].label} is running on this URL`
+							: "Custom API endpoint URL"}
+					</p>
+				</div>
+			)}
+
+			{/* Model Selection */}
+			<div className="mb-4">
+				<ModelSelector
+					provider={draftSettings.selectedProvider}
+					selectedModel={draftSettings.model}
+					settings={draftSettings}
+					onModelChange={handleModelChange}
+					onSettingsChange={setDraftSettings}
+				/>
+			</div>
+
+			{/* API Key section - only show for providers that require it */}
+			{PROVIDERS[draftSettings.selectedProvider]?.requiresApiKey && (
+				<div>
+					<div className="relative">
+						<Input
+							id="api-key"
+							name="api-key"
+							label={`${PROVIDERS[draftSettings.selectedProvider].label} API Key`}
+							type={showApiKey ? "text" : "password"}
+							value={
+								draftSettings.apiKeys?.[draftSettings.selectedProvider] || ""
+							}
+							onChange={handleApiKeyChange}
+						/>
+						<div className="absolute inset-y-0 right-0 pr-3 flex items-center top-6">
+							<div className="flex items-center gap-x-2">
+								{!draftSettings.apiKeys?.[draftSettings.selectedProvider] &&
+									PROVIDERS[draftSettings.selectedProvider].apiKeyUrl && (
+										<button
+											type="button"
+											title="API key generation page"
+											onClick={() => {
+												const url =
+													PROVIDERS[draftSettings.selectedProvider].apiKeyUrl;
+												if (url) window.open(url, "_blank");
+											}}
+											className="bg-transparent font-medium text-blue-600 cursor-pointer text-xs py-1 px-2 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+										>
+											Get Key
+										</button>
+									)}
 								<button
+									onClick={() => setShowApiKey(!showApiKey)}
 									type="button"
-									title="API key generation page"
-									onClick={() => {
-										const url =
-											PROVIDERS[draftSettings.selectedProvider].apiKeyUrl;
-										window.open(url, "_blank");
-									}}
-									className="bg-transparent font-medium text-blue-600 cursor-pointer text-xs py-1 px-2 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+									className="text-gray-400 hover:text-gray-500"
 								>
-									Get Key
+									{showApiKey ? (
+										<EyeOff className="h-5 w-5" />
+									) : (
+										<Eye className="h-5 w-5" />
+									)}
 								</button>
-							)}
-							<button
-								onClick={() => setShowApiKey(!showApiKey)}
-								type="button"
-								className="text-gray-400 hover:text-gray-500"
-							>
-								{showApiKey ? (
-									<EyeOff className="h-5 w-5" />
-								) : (
-									<Eye className="h-5 w-5" />
-								)}
-							</button>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+			)}
 
 			<div className="mt-6 border-t border-gray-300 pt-4">
 				<h2 className="text-md font-bold mb-2">Advanced Settings</h2>

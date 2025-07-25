@@ -2,8 +2,8 @@ import type { MessageType } from "../types/browser";
 
 const sendMessageToBackground = (message: {
 	type: MessageType;
-	data?: any;
-}): Promise<any> => {
+	data?: unknown;
+}): Promise<unknown> => {
 	return new Promise((resolve, reject) => {
 		chrome.runtime.sendMessage(message, (response) => {
 			if (chrome.runtime.lastError) {

@@ -7,9 +7,13 @@ import type {
 	UseLLMOptions,
 } from "../types";
 
-export async function listModels(provider: LLMProvider, apiKey?: string) {
+export async function listModels(
+	provider: LLMProvider,
+	apiKey?: string,
+	customUrl?: string,
+) {
 	const providerClass = getLlmProvider(provider);
-	return providerClass.listModels(apiKey);
+	return providerClass.listModels(apiKey, customUrl);
 }
 
 export function streamLlm(

@@ -11,7 +11,7 @@ const ToolCallView = ({ toolCalls }: ToolCallViewProps) => {
 
 	if (!toolCalls || toolCalls.length === 0) return null;
 
-	const formatArguments = (args: any) => {
+	const formatArguments = (args: Record<string, unknown>) => {
 		if (!args) return "No arguments";
 
 		// If it's a simple object with few properties, format it inline

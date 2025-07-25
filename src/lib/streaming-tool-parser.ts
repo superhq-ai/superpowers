@@ -14,7 +14,7 @@ export interface PlannerStep {
 	type: "thinking" | "tool_execution" | "tool_result";
 	timestamp: number;
 	toolName?: string;
-	toolResult?: any;
+	toolResult?: unknown;
 	isCompleted: boolean;
 }
 
@@ -243,7 +243,7 @@ export class StreamingToolParser {
 	/**
 	 * Add tool result to planner
 	 */
-	addToolResult(toolName: string, result: any, error?: string): void {
+	addToolResult(toolName: string, result: unknown, error?: string): void {
 		const content = error ? `Error: ${error}` : `Completed ${toolName}`;
 		this.addPlannerStep(content, "tool_result", toolName);
 
