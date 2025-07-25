@@ -17,8 +17,7 @@ export interface ExtendedAgentResponse extends AgentResponse {
 
 export class Agent {
 	private tools: Tool[] = [];
-	private toolHandlers: Record<string, (args: unknown) => Promise<unknown>> =
-		{};
+	private toolHandlers: Record<string, (args: any) => Promise<any>> = {};
 	private systemPrompt: string;
 	private maxIterations: number;
 	private stream: ReadableStream<string> | null = null;
@@ -34,7 +33,7 @@ export class Agent {
 		this.toolHandlers = options.toolHandlers || {};
 	}
 
-	addTool(tool: Tool, handler: (args: unknown) => Promise<unknown>) {
+	addTool(tool: Tool, handler: (args: any) => Promise<any>) {
 		this.tools.push(tool);
 		this.toolHandlers[tool.name] = handler;
 	}
@@ -143,7 +142,7 @@ Before using tools, explain your reasoning and approach. When tool calls are nee
 		history: AgentMessage[],
 		llmOptions: UseLLMOptions,
 		onProgress?: (response: Partial<ExtendedAgentResponse>) => void,
-		context?: unknown,
+		context?: any,
 	): Promise<ExtendedAgentResponse> {
 		if (context?.url) {
 			this.systemPrompt += `\n\n## CURRENT PAGE CONTEXT\n\nYou are currently on tab ID ${context.id}, titled "${context.title}" (${context.url})\n`;

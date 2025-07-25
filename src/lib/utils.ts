@@ -53,7 +53,7 @@ export function formatDate(date: Date) {
 	}).format(date);
 }
 
-export function deepEqual(obj1: unknown, obj2: unknown): boolean {
+export function deepEqual(obj1: any, obj2: any): boolean {
 	if (obj1 === obj2) return true;
 
 	if (obj1 && typeof obj1 === "object" && obj2 && typeof obj2 === "object") {

@@ -30,13 +30,24 @@ export function ModelSelect({
 	// Close dropdowns when clicking outside
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
-			if (
-				dropdownRef.current &&
-				!dropdownRef.current.contains(event.target as Node)
-			) {
-				setIsOpen(false);
-				setShowProviders(false);
+			const target = event.target as Node;
+
+			// Check if click is on the button
+			if (buttonRef.current && buttonRef.current.contains(target)) {
+				return;
 			}
+
+			// Check if click is on any dropdown content
+			const dropdownElements = document.querySelectorAll('[data-dropdown-content]');
+			for (const element of dropdownElements) {
+				if (element.contains(target)) {
+					return;
+				}
+			}
+
+			// Close dropdowns if click is outside
+			setIsOpen(false);
+			setShowProviders(false);
 		};
 
 		document.addEventListener("mousedown", handleClickOutside);
@@ -100,6 +111,7 @@ export function ModelSelect({
 			{isOpen && buttonRect && (
 				<Portal>
 					<div
+						data-dropdown-content
 						className="fixed w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-[99999] max-h-60 overflow-y-auto"
 						style={{
 							left: buttonRect.left,
@@ -145,6 +157,7 @@ export function ModelSelect({
 			{showProviders && buttonRect && (
 				<Portal>
 					<div
+						data-dropdown-content
 						className="fixed w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-[99999]"
 						style={{
 							left: buttonRect.left,

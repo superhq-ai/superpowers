@@ -49,7 +49,7 @@ export interface AgentOptions {
 	systemPrompt?: string;
 	maxIterations?: number;
 	tools?: Tool[];
-	toolHandlers?: Record<string, (args: unknown) => Promise<unknown>>;
+	toolHandlers?: Record<string, (args: any) => Promise<any>>;
 }
 
 export interface AgentResponse {

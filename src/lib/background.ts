@@ -8,7 +8,7 @@ listenForConnections();
 initSidebar();
 
 function handleRuntimeMessage(
-	request: { type: string; data?: unknown; tabId?: number },
+	request: { type: string; data?: any; tabId?: number },
 	_sender: chrome.runtime.MessageSender,
 	sendResponse: (response?: unknown) => void,
 ): boolean {

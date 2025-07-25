@@ -9,7 +9,7 @@ export interface Prompt {
 		description?: string;
 		required?: boolean;
 	}[];
-	getMessages: (args: Record<string, unknown>) => Promise<AgentMessage[]>;
+	getMessages: (args: any) => Promise<AgentMessage[]>;
 }
 
 export const PROMPTS: Prompt[] = [
