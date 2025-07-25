@@ -11,6 +11,74 @@ import type {
 
 import domToMarkdown from "./dom-to-markdown";
 
+const initializeTitleObserver = () => {
+	let titleObserver: MutationObserver | null = null;
+
+	const setupTitleObserver = () => {
+		// Clean up existing observer
+		if (titleObserver) {
+			titleObserver.disconnect();
+		}
+
+		titleObserver = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				// Check if title element content changed
+				if (
+					mutation.type === "childList" &&
+					mutation.target.nodeName === "TITLE"
+				) {
+					reportTitleChange();
+				}
+				// Check if title element was added/removed
+				else if (
+					mutation.type === "childList" &&
+					mutation.target === document.head
+				) {
+					const titleAdded = Array.from(mutation.addedNodes).some(
+						(node) => node.nodeName === "TITLE",
+					);
+					if (titleAdded) {
+						reportTitleChange();
+					}
+				}
+			});
+		});
+
+		// Watch for title element changes
+		const titleEl = document.querySelector("title");
+		if (titleEl) {
+			titleObserver.observe(titleEl, { childList: true, characterData: true });
+		}
+
+		// Also watch for title element being added/removed in head
+		titleObserver.observe(document.head, { childList: true });
+
+		// Initial title report
+		reportTitleChange();
+	};
+
+	const reportTitleChange = () => {
+		const currentTitle = document.title;
+		chrome.runtime
+			.sendMessage({
+				type: "tabTitleUpdated",
+				data: {
+					title: currentTitle,
+					url: window.location.href,
+				},
+			})
+			.catch((error) => {
+				console.warn("Failed to send title update:", error);
+			});
+	};
+
+	// Setup observer once
+	setupTitleObserver();
+};
+
+// Initialize title observer
+initializeTitleObserver();
+
 const getPageContent = (args?: SelectorArgs): PageContentResult => {
 	try {
 		const element = args?.selector

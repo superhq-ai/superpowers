@@ -59,3 +59,19 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		});
 	}
 });
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+	if (message.type === "tabTitleUpdated" && sender.tab) {
+		const { title, url } = message.data;
+		const tabId = sender.tab.id;
+
+		console.log("Title updated from content script:", { url, title, tabId });
+
+		chrome.runtime.sendMessage({
+			type: RUNTIME_MESSAGES.SET_CONTEXT,
+			data: { url, title, tabId },
+		});
+	}
+
+	sendResponse({ success: true });
+});

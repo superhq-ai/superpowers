@@ -4,7 +4,8 @@ export type MessageType =
 	| "fillInput"
 	| "getCurrentTab"
 	| "navigateToUrl"
-	| "searchGoogle";
+	| "searchGoogle"
+	| "tabTitleUpdated";
 
 export interface BaseMessage<T = unknown> {
 	type: MessageType | string;
