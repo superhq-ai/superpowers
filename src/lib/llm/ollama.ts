@@ -1,3 +1,4 @@
+import OpenAI from "openai";
 import type { LLMMessage, UseLLMOptions } from "../../types";
 import { ProviderApiError } from "../errors";
 import type { LLM } from "./index";
@@ -48,111 +49,60 @@ export class OllamaProvider implements LLM {
 		customUrl?: string,
 	): AsyncGenerator<string> {
 		const baseUrl = customUrl || "http://localhost:11434";
-		const url = `${baseUrl}/v1/chat/completions`;
+
+		const openai = new OpenAI({
+			apiKey: apiKey || "ollama",
+			baseURL: `${baseUrl}/v1`,
+		});
 
 		// Convert messages to OpenAI format
-		const openAIMessages = messages.map((msg) => ({
-			role: msg.role,
-			content: msg.content,
-		}));
-
-		const requestBody = {
-			model: options.model,
-			messages: openAIMessages,
-			stream: true,
-			temperature: options.temperature || 0.7,
-			max_tokens: options.maxTokens,
-			top_p: options.topP,
-		};
-
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-
-		// Add Authorization header only if API key is provided
-		if (apiKey?.trim()) {
-			headers.Authorization = `Bearer ${apiKey}`;
-		}
+		const openAIMessages = messages.map((msg) => {
+			switch (msg.role) {
+				case "system":
+				case "assistant":
+				case "user":
+					return {
+						role: msg.role,
+						content: msg.content,
+					};
+				case "tool":
+					return {
+						role: msg.role,
+						content: msg.content,
+						tool_call_id: msg.tool_call_id || "",
+					};
+				default:
+					throw new Error(`Unknown message role: ${msg.role}`);
+			}
+		});
 
 		try {
-			const response = await fetch(url, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(requestBody),
-				signal,
-			});
+			const stream = await openai.chat.completions.create(
+				{
+					model: options.model,
+					messages: openAIMessages,
+					stream: true,
+					temperature: options.temperature || 0.7,
+					max_tokens: options.maxTokens,
+					top_p: options.topP,
+				},
+				{ signal },
+			);
 
-			if (!response.ok) {
-				const errorText = await response.text();
-				let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-
-				try {
-					const errorJson = JSON.parse(errorText);
-					if (errorJson.error) {
-						errorMessage = errorJson.error.message || errorJson.error;
-					}
-				} catch {
-					// Use the raw error text if JSON parsing fails
-					if (errorText) {
-						errorMessage = errorText;
-					}
+			for await (const chunk of stream) {
+				const content = chunk.choices[0]?.delta?.content;
+				if (content) {
+					yield content;
 				}
-
-				throw new ProviderApiError(errorMessage);
-			}
-
-			if (!response.body) {
-				throw new ProviderApiError("No response body received");
-			}
-
-			const reader = response.body.getReader();
-			const decoder = new TextDecoder();
-
-			try {
-				while (true) {
-					const { done, value } = await reader.read();
-					if (done) break;
-
-					const chunk = decoder.decode(value, { stream: true });
-					const lines = chunk.split("\n");
-
-					for (const line of lines) {
-						if (!line.trim()) continue;
-
-						if (line.startsWith("data: ")) {
-							const data = line.slice(6);
-
-							if (data === "[DONE]") {
-								return;
-							}
-
-							try {
-								const parsed = JSON.parse(data);
-								const content = parsed.choices?.[0]?.delta?.content;
-
-								if (content) {
-									yield content;
-								}
-							} catch (_parseError) {
-								console.warn("Failed to parse SSE data:", data);
-							}
-						}
-					}
-				}
-			} finally {
-				reader.releaseLock();
 			}
 		} catch (err) {
-			if (err instanceof ProviderApiError) {
-				throw err;
-			}
-
 			const error = err as Error;
+
 			if (error.name === "AbortError") {
 				throw new ProviderApiError("Request was cancelled");
 			}
 
-			// Handle network errors
+			// Handle connection errors
 			if (error.message.includes("fetch")) {
 				throw new ProviderApiError(
 					`Failed to connect to Ollama at ${baseUrl}. Make sure Ollama is running.`,

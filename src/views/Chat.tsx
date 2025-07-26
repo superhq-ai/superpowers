@@ -20,6 +20,7 @@ import { fileToDataURL, readStream } from "../lib/utils";
 import { streamLlm } from "../services/llm";
 import type { LLMMessage } from "../types";
 import type { AgentMessage } from "../types/agent";
+import { PROVIDERS } from "../utils/providers";
 
 const Chat = () => {
 	const [inputValue, setInputValue] = useState("");
@@ -77,14 +78,18 @@ const Chat = () => {
 	}, [currentMessages]);
 
 	const handleSubmit = async (images?: File[]) => {
+		if (!settings || !settings.selectedProvider || !settings.model) {
+			setValidationError("Please select a provider and model in settings.");
+			return;
+		}
+
+		const provider = PROVIDERS[settings.selectedProvider];
 		if (
-			!settings ||
-			!settings.selectedProvider ||
-			!settings.model ||
+			provider.requiresApiKey &&
 			!settings.apiKeys[settings.selectedProvider]
 		) {
 			setValidationError(
-				"Please select a provider and model in settings, and ensure you have entered an API key.",
+				`Please enter an API key for ${provider.label} in settings.`,
 			);
 			return;
 		}
