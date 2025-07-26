@@ -29,13 +29,19 @@ export const browserHandlers = {
 			data: args,
 		});
 
-		const filledValue = (await browserHandlers.getFieldValue({
+		const filledValueResult = (await browserHandlers.getFieldValue({
 			selector: args.selector,
-		})) as { value: string };
+		})) as { value: string } | { error: string };
 
-		if (filledValue.value !== args.value) {
+		if ("error" in filledValueResult) {
 			throw new Error(
-				`Failed to fill input with selector ${args.selector}. Expected value: "${args.value}", but got: "${filledValue.value}"`,
+				`Failed to verify input value for selector ${args.selector}: ${filledValueResult.error}`,
+			);
+		}
+
+		if (filledValueResult.value !== args.value) {
+			throw new Error(
+				`Failed to fill input with selector ${args.selector}. Expected value: "${args.value}", but got: "${filledValueResult.value}"`,
 			);
 		}
 

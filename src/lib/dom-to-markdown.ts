@@ -44,7 +44,10 @@ export default function domToMarkdown(node: Node): string {
 			const tagName = element.tagName.toLowerCase();
 
 			// Only process specific elements
-			if (!ALLOWED_TAGS.includes(tagName)) {
+			if (
+				!ALLOWED_TAGS.includes(tagName) &&
+				!element.hasAttribute("contenteditable")
+			) {
 				return NodeFilter.FILTER_SKIP;
 			}
 
@@ -329,6 +332,14 @@ export default function domToMarkdown(node: Node): string {
 					}
 				}
 				break;
+			}
+		}
+
+		if (currentNode.hasAttribute("contenteditable")) {
+			const editableText = getText(currentNode);
+			if (editableText) {
+				const selectors = getSelectors(currentNode);
+				results.push(`[CONTENTEDITABLE] ${editableText}${selectors}`);
 			}
 		}
 

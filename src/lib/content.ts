@@ -115,20 +115,29 @@ const clickElement = (args: SelectorArgs): ClickElementResult => {
 
 const fillInput = (args: FillInputArgs): FillInputResult => {
 	try {
-		const element = document.querySelector(args.selector) as
-			| HTMLInputElement
-			| HTMLTextAreaElement
-			| null;
+		const element = document.querySelector(args.selector) as HTMLElement;
 		if (!element) {
 			return { error: `Element not found: ${args.selector}` };
 		}
-		if (!["INPUT", "TEXTAREA"].includes(element.tagName)) {
-			return { error: `Element is not an input or textarea: ${args.selector}` };
-		}
+
 		element.focus();
-		element.value = args.value;
+
+		if (
+			element instanceof HTMLInputElement ||
+			element instanceof HTMLTextAreaElement
+		) {
+			element.value = args.value;
+		} else if (element.isContentEditable) {
+			element.innerText = args.value;
+		} else {
+			return {
+				error: `Element is not an input, textarea, or contenteditable: ${args.selector}`,
+			};
+		}
+
 		element.dispatchEvent(new Event("input", { bubbles: true }));
 		element.dispatchEvent(new Event("change", { bubbles: true }));
+
 		return {
 			success: true,
 			message: `Filled ${element.tagName.toLowerCase()} with: ${args.value}`,
@@ -141,28 +150,27 @@ const fillInput = (args: FillInputArgs): FillInputResult => {
 
 const getFieldValue = (args: SelectorArgs): GetFieldValueResult => {
 	try {
-		const element = document.querySelector(args.selector) as
-			| HTMLInputElement
-			| HTMLTextAreaElement
-			| HTMLSelectElement;
+		const element = document.querySelector(args.selector) as HTMLElement;
 
 		if (!element) {
 			return { error: `Element not found: ${args.selector}` };
 		}
 
 		if (
-			!["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName) ||
-			(element.tagName === "INPUT" &&
-				!["text", "password", "email", "search", "tel", "url"].includes(
-					(element as HTMLInputElement).type,
-				))
+			element instanceof HTMLInputElement ||
+			element instanceof HTMLTextAreaElement ||
+			element instanceof HTMLSelectElement
 		) {
-			return {
-				error: `Element is not a supported input, textarea, or select: ${args.selector}`,
-			};
+			return { value: element.value };
 		}
 
-		return { value: element.value };
+		if (element.isContentEditable) {
+			return { value: element.innerText };
+		}
+
+		return {
+			error: `Element is not a supported input, textarea, select, or contenteditable: ${args.selector}`,
+		};
 	} catch (error) {
 		return { error: error instanceof Error ? error.message : String(error) };
 	}

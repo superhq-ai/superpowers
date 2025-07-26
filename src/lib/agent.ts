@@ -22,7 +22,6 @@ export class Agent {
 	private maxIterations: number;
 	private stream: ReadableStream<string> | null = null;
 	private isStopped = false;
-	private llmsNotFoundCache: Set<string> = new Set();
 
 	constructor(options: AgentOptions = {}) {
 		this.systemPrompt =
@@ -146,18 +145,6 @@ Before using tools, explain your reasoning and approach. When tool calls are nee
 	): Promise<ExtendedAgentResponse> {
 		if (context?.url) {
 			this.systemPrompt += `\n\n## CURRENT PAGE CONTEXT\n\nYou are currently on tab ID ${context.id}, titled "${context.title}" (${context.url})\n`;
-			const baseUrl = new URL(context.url).hostname;
-			if (!this.llmsNotFoundCache.has(baseUrl)) {
-				const llmsData = await chrome.runtime.sendMessage({
-					type: RUNTIME_MESSAGES.FETCH_LLMS,
-					data: { url: context.url },
-				});
-				if (llmsData?.llms) {
-					this.systemPrompt += `\n\n## CONTEXT FROM WEBSITE\n\n${llmsData.llms}`;
-				} else {
-					this.llmsNotFoundCache.add(baseUrl);
-				}
-			}
 		}
 
 		this.isStopped = false;

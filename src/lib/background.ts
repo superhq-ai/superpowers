@@ -1,41 +1,54 @@
 import { RUNTIME_MESSAGES } from "../constants";
 import type { BrowserActionResult } from "../types/browser";
 import { browserActions } from "./browser-actions";
-import { fetchLlmsFiles, listenForConnections } from "./llm-service";
+import { listenForConnections } from "./llm-service";
 import initSidebar from "./sidebar";
 
 listenForConnections();
 initSidebar();
 
-function handleRuntimeMessage(
-	request: { type: string; data?: any; tabId?: number },
-	_sender: chrome.runtime.MessageSender,
-	sendResponse: (response?: unknown) => void,
-): boolean {
-	const { type, data } = request;
-	const action = browserActions[type as keyof typeof browserActions];
+// Combined message listener
+chrome.runtime.onMessage.addListener(
+	(
+		request: { type: string; data?: any; tabId?: number },
+		sender: chrome.runtime.MessageSender,
+		sendResponse: (response?: unknown) => void,
+	) => {
+		const { type, data } = request;
+		const action = browserActions[type as keyof typeof browserActions];
 
-	if (action) {
-		action(data)
-			.then((result: BrowserActionResult) => sendResponse(result))
-			.catch((error: Error) => sendResponse({ error: error.message }));
-		return true; // Indicates that the response is sent asynchronously
-	} else if (type === RUNTIME_MESSAGES.FETCH_LLMS) {
-		fetchLlmsFiles(data.url)
-			.then(
-				(
-					result: { llms: string; llmsFull: string } | { error: string } | null,
-				) => sendResponse(result),
-			)
-			.catch((error: Error) => sendResponse({ error: error.message }));
-		return true;
-	}
+		if (action) {
+			action(data)
+				.then((result: BrowserActionResult) => sendResponse(result))
+				.catch((error: Error) => sendResponse({ error: error.message }));
+			return true; // Indicates that the response is sent asynchronously
+		}
 
-	sendResponse({ error: "Unknown action" });
-	return false;
-}
+		switch (type) {
+			case "tabTitleUpdated":
+				if (sender.tab) {
+					const { title, url } = data;
+					const tabId = sender.tab.id;
+					console.log("Title updated from content script:", {
+						url,
+						title,
+						tabId,
+					});
+					chrome.runtime.sendMessage({
+						type: RUNTIME_MESSAGES.SET_CONTEXT,
+						data: { url, title, tabId },
+					});
+				}
+				sendResponse({ success: true });
+				return true;
 
-chrome.runtime.onMessage.addListener(handleRuntimeMessage);
+			default:
+				// Optional: handle unknown actions
+				// sendResponse({ error: "Unknown action" });
+				return false;
+		}
+	},
+);
 
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
 	const tab = await chrome.tabs.get(tabId);
@@ -58,20 +71,4 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 			data: { url, title, tabId },
 		});
 	}
-});
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-	if (message.type === "tabTitleUpdated" && sender.tab) {
-		const { title, url } = message.data;
-		const tabId = sender.tab.id;
-
-		console.log("Title updated from content script:", { url, title, tabId });
-
-		chrome.runtime.sendMessage({
-			type: RUNTIME_MESSAGES.SET_CONTEXT,
-			data: { url, title, tabId },
-		});
-	}
-
-	sendResponse({ success: true });
 });

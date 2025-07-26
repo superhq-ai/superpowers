@@ -66,37 +66,3 @@ export function listenForConnections() {
 		});
 	});
 }
-
-/**
- * Fetches the llms.txt and llms-full.txt from the given url
- * @param url The url to fetch the files from
- * @returns The content of the files or an error
- */
-export async function fetchLlmsFiles(url: string) {
-	try {
-		const llmsUrl = new URL("llms.txt", url).toString();
-		const llmsFullUrl = new URL("llms-full.txt", url).toString();
-
-		const [llmsResponse, llmsFullResponse] = await Promise.all([
-			fetch(llmsUrl),
-			fetch(llmsFullUrl),
-		]);
-
-		if (!llmsResponse.ok && !llmsFullResponse.ok) {
-			return null;
-		}
-
-		const llmsData = llmsResponse.ok ? await llmsResponse.text() : "";
-		const llmsFullData = llmsFullResponse.ok
-			? await llmsFullResponse.text()
-			: "";
-
-		return {
-			llms: llmsData,
-			llmsFull: llmsFullData,
-		};
-	} catch (error) {
-		console.error("Error fetching llms files:", error);
-		return { error: (error as Error).message };
-	}
-}
