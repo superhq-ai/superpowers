@@ -23,8 +23,26 @@ export const browserHandlers = {
 		sendMessageToBackground({ type: "getPageContent", data: args }),
 	clickElement: (args: { selector: string }) =>
 		sendMessageToBackground({ type: "clickElement", data: args }),
-	fillInput: (args: { selector: string; value: string }) =>
-		sendMessageToBackground({ type: "fillInput", data: args }),
+	fillInput: async (args: { selector: string; value: string }) => {
+		const result = await sendMessageToBackground({
+			type: "fillInput",
+			data: args,
+		});
+
+		const filledValue = (await browserHandlers.getFieldValue({
+			selector: args.selector,
+		})) as { value: string };
+
+		if (filledValue.value !== args.value) {
+			throw new Error(
+				`Failed to fill input with selector ${args.selector}. Expected value: "${args.value}", but got: "${filledValue.value}"`,
+			);
+		}
+
+		return result;
+	},
+	getFieldValue: (args: { selector: string }) =>
+		sendMessageToBackground({ type: "getFieldValue", data: args }),
 	navigateToUrl: (args: { url: string }) =>
 		sendMessageToBackground({ type: "navigateToUrl", data: args }),
 	searchGoogle: (args: { query: string }) =>

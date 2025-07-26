@@ -3,6 +3,7 @@ import type {
 	CurrentTabResult,
 	FillInputArgs,
 	FillInputResult,
+	GetFieldValueResult,
 	HistoryNavArgs,
 	MessageType,
 	NavigateToUrlArgs,
@@ -49,6 +50,10 @@ export const browserActions = {
 
 	fillInput: (args: FillInputArgs): Promise<FillInputResult> => {
 		return sendMessageToContent<FillInputResult>("fillInput", args);
+	},
+
+	getFieldValue: (args: SelectorArgs): Promise<GetFieldValueResult> => {
+		return sendMessageToContent<GetFieldValueResult>("getFieldValue", args);
 	},
 
 	getPageContent: (args: SelectorArgs): Promise<PageContentResult> => {

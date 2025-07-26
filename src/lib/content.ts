@@ -3,6 +3,7 @@ import type {
 	CurrentTabResult,
 	FillInputArgs,
 	FillInputResult,
+	GetFieldValueResult,
 	PageContentResult,
 	SelectorArgs,
 	SimulateKeyPressArgs,
@@ -138,6 +139,35 @@ const fillInput = (args: FillInputArgs): FillInputResult => {
 	}
 };
 
+const getFieldValue = (args: SelectorArgs): GetFieldValueResult => {
+	try {
+		const element = document.querySelector(args.selector) as
+			| HTMLInputElement
+			| HTMLTextAreaElement
+			| HTMLSelectElement;
+
+		if (!element) {
+			return { error: `Element not found: ${args.selector}` };
+		}
+
+		if (
+			!["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName) ||
+			(element.tagName === "INPUT" &&
+				!["text", "password", "email", "search", "tel", "url"].includes(
+					(element as HTMLInputElement).type,
+				))
+		) {
+			return {
+				error: `Element is not a supported input, textarea, or select: ${args.selector}`,
+			};
+		}
+
+		return { value: element.value };
+	} catch (error) {
+		return { error: error instanceof Error ? error.message : String(error) };
+	}
+};
+
 const getCurrentTab = (): CurrentTabResult => {
 	return {
 		url: window.location.href,
@@ -218,6 +248,9 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 			break;
 		case "simulateKeyPress":
 			result = simulateKeyPress(data);
+			break;
+		case "getFieldValue":
+			result = getFieldValue(data);
 			break;
 		default:
 			result = { error: `Unknown action: ${type}` };

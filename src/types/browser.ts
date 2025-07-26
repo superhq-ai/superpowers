@@ -10,7 +10,8 @@ export type MessageType =
 	| "listTabs"
 	| "scrollToElement"
 	| "historyNav"
-	| "simulateKeyPress";
+	| "simulateKeyPress"
+	| "getFieldValue";
 
 export interface BaseMessage<T = unknown> {
 	type: MessageType | string;
@@ -120,4 +121,11 @@ export type BrowserActionResult =
 	| FillInputResult
 	| CurrentTabResult
 	| ScrollToElementResult
-	| SimulateKeyPressResult;
+	| SimulateKeyPressResult
+	| GetFieldValueResult;
+
+export type GetFieldValueResult =
+	| {
+			value: string | number | boolean;
+	  }
+	| { error: string };

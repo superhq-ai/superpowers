@@ -28,7 +28,8 @@ export const browserTools: Record<string, Tool> = {
 
 	fillInput: {
 		name: "fillInput",
-		description: "Fill an input field with text.",
+		description:
+			"Fill an input field with text. This tool will also verify if the value was actually filled.",
 		parameters: {
 			type: "object",
 			properties: {
@@ -42,6 +43,21 @@ export const browserTools: Record<string, Tool> = {
 				},
 			},
 			required: ["selector", "value"],
+		},
+	},
+
+	getFieldValue: {
+		name: "getFieldValue",
+		description: "Get the value of a field.",
+		parameters: {
+			type: "object",
+			properties: {
+				selector: {
+					type: "string",
+					description: "CSS selector for the field to get the value from.",
+				},
+			},
+			required: ["selector"],
 		},
 	},
 
