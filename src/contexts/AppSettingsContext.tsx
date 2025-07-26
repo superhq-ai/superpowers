@@ -6,6 +6,7 @@ import {
 	useEffect,
 	useState,
 } from "react";
+import { useChromeStorage } from "../hooks/useChromeStorage";
 import type { AppSettings, LLMProvider } from "../types";
 
 const defaultModels: Record<LLMProvider, string> = {
@@ -21,7 +22,6 @@ const defaults: AppSettings = {
 	developerMode: false,
 	customUrls: {
 		ollama: "http://localhost:11434",
-		// Gemini doesn't need a custom URL - uses native SDK
 	},
 };
 
@@ -39,84 +39,40 @@ const AppSettingsContext = createContext<AppSettingsContextType | undefined>(
 );
 
 export function AppSettingsProvider({ children }: { children: ReactNode }) {
-	const [settings, setSettings] = useState<AppSettings>(defaults);
-	const [draftSettings, setDraftSettings] = useState<AppSettings>(defaults);
+	const { value: settings, setValue: setStoredSettings } =
+		useChromeStorage<AppSettings>("settings", defaults);
+	const [draftSettings, setDraftSettings] = useState<AppSettings>(settings);
 
 	useEffect(() => {
-		if (
-			typeof chrome !== "undefined" &&
-			chrome.storage &&
-			chrome.storage.sync
-		) {
-			chrome.storage.sync.get(["settings"], (result) => {
-				if (result.settings) {
-					const loadedSettings = result.settings as AppSettings;
-					const provider =
-						loadedSettings.selectedProvider || defaults.selectedProvider;
-					const allValidModels = Object.values(defaultModels);
-					if (!allValidModels.includes(loadedSettings.model)) {
-						loadedSettings.model = defaultModels[provider];
-					}
-					setSettings((prevSettings) => ({
-						...prevSettings,
-						...loadedSettings,
-					}));
-					setDraftSettings((prevSettings) => ({
-						...prevSettings,
-						...loadedSettings,
-					}));
-				}
-			});
-		} else {
-			console.warn("Chrome storage.sync is not available.");
-		}
-	}, []);
+		setDraftSettings(settings);
+	}, [settings]);
 
-	const handleSetSettings = useCallback((newSettings: Partial<AppSettings>) => {
-		setSettings((prevSettings) => {
-			const updatedSettings = { ...prevSettings, ...newSettings };
+	const handleSetSettings = useCallback(
+		(newSettings: Partial<AppSettings>) => {
+			const updatedSettings = { ...settings, ...newSettings };
 
 			if (
 				newSettings.selectedProvider &&
-				newSettings.selectedProvider !== prevSettings.selectedProvider
+				newSettings.selectedProvider !== settings.selectedProvider
 			) {
 				updatedSettings.model = defaultModels[newSettings.selectedProvider];
 			}
-
-			// Auto-save to Chrome storage
-			chrome.storage.sync.set({ settings: updatedSettings });
-
-			return updatedSettings;
-		});
-
-		// Also update draft settings to keep them in sync
-		setDraftSettings((prevDraftSettings) => {
-			const updatedDraftSettings = { ...prevDraftSettings, ...newSettings };
-
-			if (
-				newSettings.selectedProvider &&
-				newSettings.selectedProvider !== prevDraftSettings.selectedProvider
-			) {
-				updatedDraftSettings.model =
-					defaultModels[newSettings.selectedProvider];
-			}
-
-			return updatedDraftSettings;
-		});
-	}, []);
+			setStoredSettings(updatedSettings);
+			setDraftSettings(updatedSettings);
+		},
+		[settings, setStoredSettings],
+	);
 
 	const handleSetDraftSettings = useCallback(
 		(newSettings: Partial<AppSettings>) => {
-			setDraftSettings((prevSettings) => {
-				const updatedSettings = { ...prevSettings, ...newSettings };
-
+			setDraftSettings((prev) => {
+				const updatedSettings = { ...prev, ...newSettings };
 				if (
 					newSettings.selectedProvider &&
-					newSettings.selectedProvider !== prevSettings.selectedProvider
+					newSettings.selectedProvider !== prev.selectedProvider
 				) {
 					updatedSettings.model = defaultModels[newSettings.selectedProvider];
 				}
-
 				return updatedSettings;
 			});
 		},
@@ -124,9 +80,8 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 	);
 
 	const saveSettings = useCallback(() => {
-		setSettings(draftSettings);
-		chrome.storage.sync.set({ settings: draftSettings });
-	}, [draftSettings]);
+		setStoredSettings(draftSettings);
+	}, [draftSettings, setStoredSettings]);
 
 	const resetDraftSettings = useCallback(() => {
 		setDraftSettings(settings);

@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import { useModels } from "../hooks/useModels";
 import type { LLMProvider } from "../types";
@@ -7,20 +7,17 @@ import { PROVIDERS } from "../utils/providers";
 import Portal from "./Portal";
 
 interface ModelSelectProps {
-	provider: LLMProvider;
-	apiKey?: string;
 	value: string;
 	onChange: (value: string) => void;
 }
 
-export function ModelSelect({
-	provider: _provider,
-	apiKey: _apiKey,
-	value,
-	onChange,
-}: ModelSelectProps) {
+export function ModelSelect({ value, onChange }: ModelSelectProps) {
 	const { settings, setSettings } = useAppSettings();
-	const { models, isLoading } = useModels(settings.selectedProvider, settings);
+	const { models, isLoading } = useModels(
+		settings.selectedProvider,
+		settings,
+		setSettings,
+	);
 	const [isOpen, setIsOpen] = useState(false);
 	const [showProviders, setShowProviders] = useState(false);
 	const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
@@ -33,7 +30,7 @@ export function ModelSelect({
 			const target = event.target as Node;
 
 			// Check if click is on the button
-			if (buttonRef.current && buttonRef.current.contains(target)) {
+			if (buttonRef.current?.contains(target)) {
 				return;
 			}
 
@@ -56,37 +53,54 @@ export function ModelSelect({
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
-	const handleProviderChange = (newProvider: LLMProvider) => {
-		setSettings({
-			selectedProvider: newProvider,
-			// Model will be auto-set to default for the new provider
-		});
-		setShowProviders(false);
-	};
+	const handleProviderChange = useCallback(
+		(newProvider: LLMProvider) => {
+			setSettings({
+				selectedProvider: newProvider,
+				// Model will be auto-set to default for the new provider
+			});
+			setShowProviders(false);
+		},
+		[setSettings],
+	);
 
-	const handleRightClick = (e: React.MouseEvent) => {
+	const handleModelChange = useCallback(
+		(model: string) => {
+			// Call the parent onChange first
+			onChange(model);
+
+			// Only update settings if the model is actually different
+			if (model !== settings.model) {
+				setSettings({ model });
+			}
+
+			setIsOpen(false);
+		},
+		[onChange, settings.model, setSettings],
+	);
+
+	const handleRightClick = useCallback((e: React.MouseEvent) => {
 		e.preventDefault();
 		if (buttonRef.current) {
 			setButtonRect(buttonRef.current.getBoundingClientRect());
 		}
 		setIsOpen(false);
 		setShowProviders(true);
-	};
+	}, []);
 
-	const handleLeftClick = () => {
+	const handleLeftClick = useCallback(() => {
 		if (buttonRef.current) {
 			setButtonRect(buttonRef.current.getBoundingClientRect());
 		}
 		setShowProviders(false);
 		setIsOpen(!isOpen);
-	};
+	}, [isOpen]);
 
 	const providerOptions = Object.entries(PROVIDERS).map(([key, info]) => ({
 		value: key as LLMProvider,
 		label: info.label,
 	}));
 
-	// Use settings.selectedProvider instead of prop to ensure consistency
 	const currentProvider = settings.selectedProvider;
 
 	return (
@@ -136,10 +150,7 @@ export function ModelSelect({
 									<button
 										key={model}
 										type="button"
-										onClick={() => {
-											onChange(model);
-											setIsOpen(false);
-										}}
+										onClick={() => handleModelChange(model)}
 										className={`w-full text-left px-2 py-2 text-sm rounded-lg transition-colors duration-150 ${
 											model === value
 												? "bg-blue-50 text-blue-700 font-medium"

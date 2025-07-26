@@ -1,10 +1,7 @@
-import { Plus, RefreshCw, X } from "lucide-react";
-import { useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { useModels } from "../hooks/useModels";
 import type { AppSettings, LLMProvider } from "../types";
 import { PROVIDERS } from "../utils/providers";
-import Button from "./ui/Button";
-import Input from "./ui/Input";
 import Select from "./ui/Select";
 
 interface ModelSelectorProps {
@@ -20,48 +17,21 @@ export default function ModelSelector({
 	selectedModel,
 	settings,
 	onModelChange,
-	onSettingsChange: _onSettingsChange,
+	onSettingsChange,
 }: ModelSelectorProps) {
-	const {
-		models,
-		isLoading,
-		error,
-		refreshModels,
-		addCustomModel,
-		removeCustomModel,
-	} = useModels(provider, settings);
-	const [showCustomInput, setShowCustomInput] = useState(false);
-	const [customModelInput, setCustomModelInput] = useState("");
+	const { models, isLoading, error, refreshModels } = useModels(
+		provider,
+		settings,
+		onSettingsChange,
+	);
 
 	const modelOptions = models.map((model) => ({
 		value: model,
 		label: model,
 	}));
 
-	const handleAddCustomModel = async () => {
-		if (!customModelInput.trim()) return;
-
-		await addCustomModel(customModelInput.trim());
-		onModelChange(customModelInput.trim());
-		setCustomModelInput("");
-		setShowCustomInput(false);
-	};
-
-	const handleRemoveCustomModel = async (model: string) => {
-		await removeCustomModel(model);
-		if (selectedModel === model && models.length > 0) {
-			onModelChange(models[0]);
-		}
-	};
-
-	const isCustomModel = (model: string) => {
-		const customModels = settings.customModels?.[provider] || [];
-		return customModels.includes(model);
-	};
-
 	const providerInfo = PROVIDERS[provider];
 	const showRefreshButton = providerInfo?.supportsModelRefresh;
-	const showAddCustomButton = providerInfo?.supportsCustomModels;
 
 	return (
 		<div className="space-y-3">
@@ -88,16 +58,6 @@ export default function ModelSelector({
 							/>
 						</button>
 					)}
-					{showAddCustomButton && (
-						<button
-							type="button"
-							onClick={() => setShowCustomInput(!showCustomInput)}
-							className="p-1 text-gray-400 hover:text-gray-600"
-							title="Add custom model"
-						>
-							<Plus className="w-4 h-4" />
-						</button>
-					)}
 				</div>
 			</div>
 
@@ -111,80 +71,18 @@ export default function ModelSelector({
 				<Select
 					options={modelOptions}
 					value={selectedModel}
-					onChange={onModelChange}
+					onChange={(model) => {
+						onModelChange(model);
+						onSettingsChange({ model });
+					}}
 					disabled={isLoading}
 					placeholder={isLoading ? "Loading models..." : "Select a model"}
 				/>
-
-				{showAddCustomButton && showCustomInput && (
-					<div className="flex gap-2">
-						<Input
-							label=""
-							value={customModelInput}
-							onChange={(e) => setCustomModelInput(e.target.value)}
-							placeholder="Enter custom model name (e.g., llama3.2:7b)"
-							onKeyDown={(e) => {
-								if (e.key === "Enter") {
-									e.preventDefault();
-									handleAddCustomModel();
-								}
-								if (e.key === "Escape") {
-									setShowCustomInput(false);
-									setCustomModelInput("");
-								}
-							}}
-						/>
-						<Button
-							onClick={handleAddCustomModel}
-							disabled={!customModelInput.trim()}
-							size="sm"
-						>
-							Add
-						</Button>
-						<Button
-							onClick={() => {
-								setShowCustomInput(false);
-								setCustomModelInput("");
-							}}
-							variant="outline"
-							size="sm"
-						>
-							Cancel
-						</Button>
-					</div>
-				)}
 			</div>
-
-			{/* Show custom models with remove option - only for providers that support custom models */}
-			{showAddCustomButton && models.some((model) => isCustomModel(model)) && (
-				<div className="space-y-1">
-					<div className="text-xs text-gray-500">Custom Models:</div>
-					<div className="flex flex-wrap gap-1">
-						{models
-							.filter((model) => isCustomModel(model))
-							.map((model) => (
-								<div
-									key={model}
-									className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs"
-								>
-									<span>{model}</span>
-									<button
-										type="button"
-										onClick={() => handleRemoveCustomModel(model)}
-										className="text-blue-500 hover:text-blue-700"
-										title="Remove custom model"
-									>
-										<X className="w-3 h-3" />
-									</button>
-								</div>
-							))}
-					</div>
-				</div>
-			)}
 
 			{models.length === 0 && !isLoading && (
 				<div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-					No models available. Try refreshing or add a custom model.
+					No models available. Try refreshing the list.
 				</div>
 			)}
 		</div>
