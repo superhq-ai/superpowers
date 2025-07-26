@@ -129,42 +129,6 @@ export async function handleModelCommand(
 		}
 
 		// No match - suggest adding as custom model for supported providers
-		if (PROVIDERS[provider]?.supportsCustomModels) {
-			// Add as custom model
-			const customModels = currentSettings.customModels?.[provider] || [];
-			if (!customModels.includes(action)) {
-				const newCustomModels = [...customModels, action].sort();
-
-				// Clear cache to force refresh with new model
-				const cacheKey = getCacheKey(provider, currentSettings);
-				const newCache = { ...currentSettings.modelCache };
-				delete newCache[cacheKey];
-
-				updateSettings({
-					customModels: {
-						...currentSettings.customModels,
-						[provider]: newCustomModels,
-					},
-					model: action,
-					modelCache: newCache,
-				});
-
-				return {
-					type: "success",
-					message: `Added and switched to custom model: **${action}**`,
-					modelChanged: true,
-					newModel: action,
-				};
-			} else {
-				updateSettings({ model: action });
-				return {
-					type: "success",
-					message: `Switched to custom model: **${action}**`,
-					modelChanged: true,
-					newModel: action,
-				};
-			}
-		}
 
 		// Model not found and can't add custom
 		const availableList = models.slice(0, 5).join(", ");
@@ -201,9 +165,7 @@ async function getAvailableModels(
 	const customUrl = settings.customUrls?.[provider];
 
 	const apiModels = await listModels(provider, apiKey, customUrl);
-	const customModels = settings.customModels?.[provider] || [];
-
-	return [...new Set([...apiModels, ...customModels])].sort();
+	return [...new Set([...apiModels])].sort();
 }
 
 function getCacheKey(provider: LLMProvider, settings: AppSettings): string {

@@ -8,8 +8,6 @@ interface UseModelsReturn {
 	isLoading: boolean;
 	error: string | null;
 	refreshModels: () => Promise<void>;
-	addCustomModel: (model: string) => void;
-	removeCustomModel: (model: string) => void;
 }
 
 const MODEL_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -17,6 +15,7 @@ const MODEL_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 export function useModels(
 	provider: LLMProvider,
 	settings: AppSettings,
+	onSettingsChange: (newSettings: Partial<AppSettings>) => void,
 ): UseModelsReturn {
 	const [models, setModels] = useState<string[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
@@ -27,38 +26,19 @@ export function useModels(
 		const customUrl =
 			settings.customUrls?.[provider] || PROVIDERS[provider]?.defaultUrl || "";
 		return `${provider}-${customUrl}-${apiKey.slice(0, 8)}`;
-	}, [provider, settings]);
+	}, [provider, settings.apiKeys, settings.customUrls]);
 
-	const getFromCache = useCallback(() => {
-		const cacheKey = getCacheKey();
-		const cache = settings.modelCache?.[cacheKey];
-
-		if (cache && Date.now() - cache.timestamp < MODEL_CACHE_DURATION) {
-			return cache.models;
-		}
-		return null;
-	}, [getCacheKey, settings.modelCache]);
-
-	const saveToCache = useCallback(
-		async (models: string[]) => {
+	const getFromCache = useCallback(
+		(modelCache: typeof settings.modelCache) => {
 			const cacheKey = getCacheKey();
-			const newCache = {
-				...settings.modelCache,
-				[cacheKey]: {
-					models,
-					timestamp: Date.now(),
-				},
-			};
+			const cache = modelCache?.[cacheKey];
 
-			// Save to Chrome storage
-			await chrome.storage.sync.set({
-				settings: {
-					...settings,
-					modelCache: newCache,
-				},
-			});
+			if (cache && Date.now() - cache.timestamp < MODEL_CACHE_DURATION) {
+				return cache.models;
+			}
+			return null;
 		},
-		[getCacheKey, settings],
+		[getCacheKey],
 	);
 
 	const refreshModels = useCallback(async () => {
@@ -66,8 +46,8 @@ export function useModels(
 		setError(null);
 
 		try {
-			// Check cache first
-			const cachedModels = getFromCache();
+			// Check cache first - pass current cache to avoid dependency
+			const cachedModels = getFromCache(settings.modelCache);
 			if (cachedModels) {
 				setModels(cachedModels);
 				setIsLoading(false);
@@ -85,56 +65,11 @@ export function useModels(
 
 			const fetchedModels = await listModels(provider, apiKey, customUrl);
 
-			// Add custom models for this provider
-			const customModels = settings.customModels?.[provider] || [];
-			const allModels = [
-				...new Set([...fetchedModels, ...customModels]),
-			].sort();
+			const allModels = [...new Set([...fetchedModels])].sort();
 
 			setModels(allModels);
-			await saveToCache(allModels);
-		} catch (err) {
-			const errorMessage =
-				err instanceof Error ? err.message : "Failed to fetch models";
-			setError(errorMessage);
 
-			// Fallback to custom models if available
-			const customModels = settings.customModels?.[provider] || [];
-			if (customModels.length > 0) {
-				setModels(customModels);
-			} else {
-				// Fallback to default models based on provider
-				const fallbackModels = getFallbackModels(provider);
-				setModels(fallbackModels);
-			}
-		} finally {
-			setIsLoading(false);
-		}
-	}, [provider, settings, getFromCache, saveToCache]);
-
-	const addCustomModel = useCallback(
-		async (model: string) => {
-			if (!model.trim()) return;
-
-			const customModels = settings.customModels?.[provider] || [];
-			if (customModels.includes(model)) return;
-
-			const newCustomModels = [...customModels, model].sort();
-			const newSettings = {
-				...settings,
-				customModels: {
-					...settings.customModels,
-					[provider]: newCustomModels,
-				},
-			};
-
-			await chrome.storage.sync.set({ settings: newSettings });
-
-			// Update local state immediately
-			const allModels = [...new Set([...models, model])].sort();
-			setModels(allModels);
-
-			// Also update cache to include the new model
+			// Update cache
 			const cacheKey = getCacheKey();
 			const newCache = {
 				...settings.modelCache,
@@ -143,61 +78,37 @@ export function useModels(
 					timestamp: Date.now(),
 				},
 			};
+			onSettingsChange({ modelCache: newCache });
+		} catch (err) {
+			const errorMessage =
+				err instanceof Error ? err.message : "Failed to fetch models";
+			setError(errorMessage);
 
-			await chrome.storage.sync.set({
-				settings: {
-					...newSettings,
-					modelCache: newCache,
-				},
-			});
-		},
-		[provider, settings, models, getCacheKey],
-	);
+			// Fallback to default models based on provider
+			const fallbackModels = getFallbackModels(provider);
+			setModels(fallbackModels);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [
+		provider,
+		settings.apiKeys,
+		settings.customUrls,
+		settings.modelCache,
+		getFromCache,
+		getCacheKey,
+		onSettingsChange,
+	]);
 
-	const removeCustomModel = useCallback(
-		async (model: string) => {
-			const customModels = settings.customModels?.[provider] || [];
-			const newCustomModels = customModels.filter((m) => m !== model);
-
-			const newSettings = {
-				...settings,
-				customModels: {
-					...settings.customModels,
-					[provider]: newCustomModels,
-				},
-			};
-
-			await chrome.storage.sync.set({ settings: newSettings });
-
-			// Update local state - only remove if it was a custom model
-			if (customModels.includes(model)) {
-				setModels((prev) => prev.filter((m) => m !== model));
-			}
-		},
-		[provider, settings],
-	);
-
-	// Auto-refresh when provider or settings change
 	useEffect(() => {
 		refreshModels();
 	}, [refreshModels]);
-
-	// Also refresh when custom models change for this provider
-	useEffect(() => {
-		const customModels = settings.customModels?.[provider] || [];
-		if (customModels.length > 0) {
-			// Force refresh to include new custom models
-			refreshModels();
-		}
-	}, [settings.customModels, provider, refreshModels]);
 
 	return {
 		models,
 		isLoading,
 		error,
 		refreshModels,
-		addCustomModel,
-		removeCustomModel,
 	};
 }
 

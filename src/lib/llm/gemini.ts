@@ -9,7 +9,7 @@ import { ProviderApiError } from "../errors";
 import type { LLM } from "./index";
 
 export class GeminiProvider implements LLM {
-	// Gemini models are predefined - no need for API calls
+	// TODO: Replace with actual API call to list models
 	static async listModels(
 		_apiKey?: string,
 		_customUrl?: string,
@@ -17,9 +17,11 @@ export class GeminiProvider implements LLM {
 		return Promise.resolve([
 			"gemini-2.0-flash",
 			"gemini-1.5-flash-latest",
-			"gemini-1.5-flash-8b-latest",
 			"gemini-1.5-pro-latest",
-			"gemini-1.0-pro-latest",
+			"gemini-2.5-pro",
+			"gemini-2.5-flash",
+			"gemini-2.5-flash-lite",
+			"gemini-1.0-pro",
 		]);
 	}
 
