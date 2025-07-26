@@ -6,12 +6,7 @@ import type { LLMProvider } from "../types";
 import { PROVIDERS } from "../utils/providers";
 import Portal from "./Portal";
 
-interface ModelSelectProps {
-	value: string;
-	onChange: (value: string) => void;
-}
-
-export function ModelSelect({ value, onChange }: ModelSelectProps) {
+export function ModelSelect() {
 	const { settings, setSettings } = useAppSettings();
 	const { models, isLoading } = useModels(
 		settings.selectedProvider,
@@ -66,9 +61,6 @@ export function ModelSelect({ value, onChange }: ModelSelectProps) {
 
 	const handleModelChange = useCallback(
 		(model: string) => {
-			// Call the parent onChange first
-			onChange(model);
-
 			// Only update settings if the model is actually different
 			if (model !== settings.model) {
 				setSettings({ model });
@@ -76,7 +68,7 @@ export function ModelSelect({ value, onChange }: ModelSelectProps) {
 
 			setIsOpen(false);
 		},
-		[onChange, settings.model, setSettings],
+		[settings.model, setSettings],
 	);
 
 	const handleRightClick = useCallback((e: React.MouseEvent) => {
@@ -116,7 +108,7 @@ export function ModelSelect({ value, onChange }: ModelSelectProps) {
 				title="Left-click for models, right-click for providers"
 			>
 				<span className="truncate max-w-32">
-					{isLoading ? "Loading..." : value || "Select model"}
+					{isLoading ? "Loading..." : settings.model || "Select model"}
 				</span>
 				<ChevronDown
 					className={`w-3 h-3 transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`}
@@ -152,7 +144,7 @@ export function ModelSelect({ value, onChange }: ModelSelectProps) {
 										type="button"
 										onClick={() => handleModelChange(model)}
 										className={`w-full text-left px-2 py-2 text-sm rounded-lg transition-colors duration-150 ${
-											model === value
+											model === settings.model
 												? "bg-blue-50 text-blue-700 font-medium"
 												: "text-gray-700 hover:bg-gray-50"
 										}`}

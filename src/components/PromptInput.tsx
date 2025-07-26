@@ -22,7 +22,7 @@ const PromptBox = ({
 	onSubmit: (images?: File[]) => void;
 	onStop?: () => void;
 }) => {
-	const { settings, setSettings } = useAppSettings();
+	const { settings } = useAppSettings();
 	const [showSlashCommands, setShowSlashCommands] = useState(false);
 	const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
 	const {
@@ -243,12 +243,7 @@ const PromptBox = ({
 						>
 							<Scan className="w-4 h-4" />
 						</button>
-						{settings.selectedProvider && (
-							<ModelSelect
-								value={settings.model}
-								onChange={(model) => setSettings({ model })}
-							/>
-						)}
+						{settings.selectedProvider && <ModelSelect />}
 					</div>
 					{isLoading ? (
 						<button
