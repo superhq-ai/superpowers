@@ -9,7 +9,7 @@ export type Message = {
 	attachments?: Attachment[];
 };
 
-export type LLMProvider = "gemini" | "ollama";
+export type LLMProvider = "gemini" | "ollama" | "openrouter";
 
 export type LLMMessage = {
 	role: "user" | "assistant" | "system" | "tool";

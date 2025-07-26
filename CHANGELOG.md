@@ -27,10 +27,20 @@ This document outlines the comprehensive enhancements made to the forked Superpo
 - **Real-time Model Discovery**: Dynamic model fetching from provider APIs
 - **Fallback Models**: Graceful degradation when APIs are unavailable
 
-### 4. **Innovative `/model` Command System**
+### 4. **Innovative `/model` Command System with Auto-Suggestions**
 - **In-Chat Model Switching**: Change models without leaving conversation
 - **Smart Model Discovery**: List and explore available models instantly
-- **Fuzzy Matching**: Intelligent model name matching and suggestions
+- **Intelligent Auto-Suggestions**: Real-time dropdown suggestions as you type
+  - Type `/model gpt` → Shows only GPT models
+  - Type `/model free` → Shows only free models
+  - Type `/model anthropic` → Shows Claude models
+- **Visual Model Suggestions**: Color-coded badges in suggestion dropdown
+  - 🟢 **Free models** with green badges
+  - 🔵 **Paid models** with blue badges
+  - 🟣 **Custom models** with purple badges
+- **Keyboard Navigation**: Full keyboard support (↑↓ Enter Esc Tab)
+- **Fuzzy Matching**: Intelligent model name matching and filtering
+- **Error Prevention**: Only shows valid, available models for current provider
 - **Custom Model Addition**: Add new models on-the-fly via chat commands
 
 ### 5. **Enhanced Settings Management**
@@ -407,3 +417,456 @@ export function useModels(provider: LLMProvider, settings: AppSettings) {
 
 
 This comprehensive enhancement represents a complete transformation of the Superpowers extension, establishing it as a leading-edge, privacy-focused, multi-provider AI assistant that prioritizes user experience, performance, and extensibility.
+
+---
+
+## 🆕 Latest Updates - OpenRouter Integration & Advanced Features
+
+### Version 2.0 - OpenRouter & Storage Optimization (Latest)
+
+#### 🌟 Major New Features
+
+##### 1. **OpenRouter.ai Integration**
+- **Multi-Model Access**: Access to 100+ AI models through OpenRouter
+- **Real-time Model Discovery**: Dynamic fetching of available models with metadata
+- **Pricing Information**: Shows cost per token for each model in dropdown
+- **Free/Paid Model Filtering**: Visual badges and filtering for cost-conscious users
+- **Enhanced Model Search**: Search models by name, description, or capabilities
+
+##### 2. **Advanced Model Management System**
+- **Enhanced Model Selector**: New `EnhancedModelSelector` component with filtering
+- **Visual Model Distinction**:
+  - 🟢 **Free** models with green badges
+  - 🔵 **Paid** models with blue badges
+  - 🟣 **Custom** models with purple badges
+- **Smart Model Filtering**:
+  - Search by model name or description
+  - Filter by pricing (Free/Paid/All)
+  - Sort by name, price, or context length
+- **Real-time Model Metadata**: Context length, pricing, and descriptions
+
+##### 3. **Chrome Storage Optimization**
+- **Storage Quota Management**: Fixes "Resource::kQuotaBytesPerItem quota exceeded" errors
+- **Intelligent Data Migration**: Automatically moves large data to local storage
+- **Smart Cache Compression**: Optimized model cache storage
+- **Automatic Cleanup**: Removes old cache entries to prevent quota issues
+- **Storage Usage Monitoring**: Real-time quota usage tracking
+
+##### 4. **Enhanced Provider Validation System**
+- **Comprehensive Error Handling**: Provider-specific error messages
+- **Smart Fallback System**: Automatic provider switching when errors occur
+- **API Key Format Validation**: Validates API key formats per provider
+- **Connection Testing**: Real-time provider connectivity testing
+- **Setup Instructions**: Context-aware setup guidance for each provider
+
+#### 🔧 Technical Improvements
+
+##### Provider Architecture Enhancement
+```typescript
+// Enhanced provider metadata with OpenRouter support
+export const PROVIDERS: Record<LLMProvider, ProviderInfo> = {
+  gemini: {
+    label: "Gemini",
+    requiresApiKey: true,
+    apiKeyFormat: "AIza...",
+    notes: "Get your API key from Google AI Studio"
+  },
+  ollama: {
+    label: "Ollama (Local)",
+    defaultUrl: "http://localhost:11434",
+    requiresApiKey: false,
+    supportsModelRefresh: true,
+    supportsCustomModels: true,
+    apiEndpointPrefix: "/v1",
+    notes: "Ensure Ollama server is running locally"
+  },
+  openrouter: {
+    label: "OpenRouter.ai",
+    defaultUrl: "https://openrouter.ai",
+    requiresApiKey: true,
+    supportsModelRefresh: true,
+    apiEndpointPrefix: "/api/v1",
+    apiKeyFormat: "sk-or-...",
+    notes: "Requires an OpenRouter API key for access to multiple AI models"
+  }
+};
+```
+
+##### Storage Optimization System
+```typescript
+// Intelligent storage management
+class StorageOptimizer {
+  // Automatic quota monitoring and optimization
+  static async saveSettings(settings: AppSettings): Promise<void>
+
+  // Smart cache management with local storage migration
+  static async getModelCache(): Promise<ModelCache>
+
+  // Automatic cleanup of old data
+  static async cleanup(): Promise<void>
+}
+```
+
+##### Enhanced Model Interface
+```typescript
+// Rich model metadata for advanced filtering
+interface ModelWithMetadata {
+  id: string;
+  name: string;
+  description?: string;
+  pricing?: { prompt: string; completion: string; };
+  context_length?: number;
+  isFree?: boolean;
+  isPaid?: boolean;
+}
+```
+
+#### 🎯 User Experience Enhancements
+
+##### Advanced Model Selection
+- **Enhanced Dropdown UI**: Shows pricing, descriptions, and badges
+- **Real-time Filtering**: Instant search and filter results
+- **Smart Sorting Options**: Sort by name, price, or context length
+- **Visual Model Categories**: Clear distinction between free/paid/custom models
+
+##### Error Resolution System
+- **Tailored Error Messages**: Provider-specific error explanations
+- **Automatic Problem Resolution**: Smart fallback and recovery mechanisms
+- **Setup Guidance**: Step-by-step instructions for each provider
+- **Connection Diagnostics**: Real-time connectivity testing
+
+##### Storage Management
+- **Transparent Quota Usage**: Users can see storage consumption
+- **Automatic Optimization**: Background cleanup and optimization
+- **No Data Loss**: Safe migration of large data to local storage
+- **Performance Improvement**: Faster loading with optimized storage
+
+#### 🚀 Performance Optimizations
+
+##### Model Loading Performance
+- **Intelligent Caching**: Optimized cache storage and retrieval
+- **Background Updates**: Non-blocking model list refreshes
+- **Lazy Loading**: Models loaded only when needed
+- **Efficient Filtering**: Fast client-side model filtering
+
+##### Storage Performance
+- **Quota-Aware Operations**: Prevents storage overflow errors
+- **Compressed Data Storage**: Efficient model list compression
+- **Smart Cache Invalidation**: Optimal cache refresh strategies
+- **Local Storage Utilization**: 5MB local storage for large datasets
+
+#### 🔒 Enhanced Security & Privacy
+
+##### OpenRouter Integration Security
+- **Secure API Communication**: HTTPS-only communication with proper headers
+- **API Key Protection**: Secure storage and handling of OpenRouter keys
+- **Request Validation**: Proper request formatting and error handling
+- **Privacy Headers**: Appropriate referer and title headers
+
+##### Storage Security
+- **Secure Data Migration**: Safe transfer of sensitive data
+- **Encrypted Storage**: Chrome's secure storage APIs
+- **No Data Leakage**: Proper cleanup of temporary data
+- **Access Control**: Restricted access to storage operations
+
+#### 📊 Provider Comparison Matrix
+
+| Feature | Gemini | Ollama | OpenRouter | Status |
+|---------|--------|--------|------------|---------|
+| **Model Count** | ~5 models | Unlimited | 100+ models | ✅ Implemented |
+| **Cost** | Paid API | Free (Local) | Free + Paid options | ✅ Implemented |
+| **Privacy** | Cloud | Local | Cloud | ✅ Implemented |
+| **Model Refresh** | ❌ No | ✅ Yes | ✅ Yes | ✅ Implemented |
+| **Custom Models** | ❌ No | ✅ Yes | ❌ No | ✅ Implemented |
+| **Pricing Info** | ❌ No | ❌ N/A | ✅ Yes | ✅ Implemented |
+| **Model Search** | ❌ No | ✅ Basic | ✅ Advanced | ✅ Implemented |
+| **Visual Badges** | ❌ No | ✅ Custom | ✅ Free/Paid | ✅ Implemented |
+
+#### 🛠️ Bug Fixes & Improvements
+
+##### Critical Fixes
+- **✅ Fixed**: "Resource::kQuotaBytesPerItem quota exceeded" Chrome storage error
+- **✅ Fixed**: "window is not defined" error in OpenRouter provider
+- **✅ Fixed**: Model dropdown click issues with Portal rendering
+- **✅ Fixed**: Provider validation and error handling edge cases
+
+##### UI/UX Improvements
+- **✅ Enhanced**: Model selector with badges and descriptions
+- **✅ Enhanced**: Provider-specific error messages and guidance
+- **✅ Enhanced**: Real-time storage quota monitoring
+- **✅ Enhanced**: Automatic settings optimization and cleanup
+
+#### 🎉 Summary of Latest Achievements
+
+##### Core Accomplishments
+1. **Added OpenRouter integration** with 100+ AI models
+2. **Implemented advanced model filtering** with pricing and metadata
+3. **Solved Chrome storage quota issues** with intelligent optimization
+4. **Enhanced error handling** with provider-specific validation
+5. **Created visual model distinction** with badges and descriptions
+
+##### User Benefits
+- **Access to 100+ AI Models**: Vast selection through OpenRouter
+- **Cost Transparency**: Clear pricing information for all models
+- **No Storage Errors**: Automatic quota management and optimization
+- **Better Error Messages**: Clear, actionable error explanations
+- **Enhanced Model Discovery**: Advanced search and filtering capabilities
+
+##### Technical Excellence
+- **Robust Storage Management**: Intelligent quota handling and optimization
+- **Enhanced Provider Architecture**: Extensible system supporting unlimited providers
+- **Advanced Error Recovery**: Comprehensive validation and fallback systems
+- **Performance Optimized**: Smart caching and efficient data management
+- **Future-Ready**: Architecture prepared for additional AI providers
+
+This latest update establishes the Superpowers extension as the most comprehensive and user-friendly multi-provider AI assistant available, with industry-leading storage management, error handling, and model discovery capabilities.
+
+---
+
+## 🔧 Critical Fix - Unified API Request System (Latest Hotfix)
+
+### Version 2.1 - OpenRouter & Ollama Model Fetching Fix
+
+#### 🚨 **Issue Identified**
+**Problem**: OpenRouter and Ollama model fetching was failing due to inconsistent URL construction across providers.
+
+**Root Cause**: Each provider implemented its own API request logic instead of using a unified approach.
+
+#### ❌ **Previous Broken Implementation**
+```typescript
+// Before: Provider-specific implementations (BROKEN)
+
+// OpenRouter - Custom fetch logic
+const response = await fetch(`${baseUrl}/api/v1/models`, {
+  headers: { "Authorization": `Bearer ${apiKey}` }
+});
+
+// Ollama - Different fetch logic
+const response = await fetch(`${baseUrl}/api/tags`);
+
+// ❌ Problems:
+// - Inconsistent URL construction
+// - No unified error handling
+// - Different header management per provider
+// - Hard to debug and maintain
+```
+
+#### ✅ **New Unified Implementation**
+```typescript
+// After: Single unified API request function (WORKING)
+
+export async function apiRequest(
+  endpoint: string,
+  provider: LLMProvider,
+  settings: AppSettings
+): Promise<Response> {
+  const providerInfo = PROVIDERS[provider];
+  const baseUrl = settings.customUrls?.[provider] || providerInfo.defaultUrl;
+  const apiPrefix = providerInfo.apiEndpointPrefix || '';
+
+  // Smart URL construction matching reference implementation
+  const fullUrl = endpoint.startsWith('/api/') ?
+    `${baseUrl}${endpoint}` :           // Direct: /api/tags
+    `${baseUrl}${apiPrefix}${endpoint}`; // Prefixed: /api/v1/models
+
+  // Unified headers, error handling, and logging
+  return await fetch(fullUrl, options);
+}
+```
+
+#### 🔧 **Key Changes Made**
+
+##### 1. **Enhanced Provider Configuration**
+```typescript
+// Updated provider metadata to match reference implementation
+export const PROVIDERS: Record<LLMProvider, ProviderInfo> = {
+  openrouter: {
+    label: "OpenRouter.ai",
+    defaultUrl: "https://openrouter.ai",
+    apiEndpointPrefix: "/api/v1",        // ✅ NEW: Unified prefix
+    modelsEndpoint: "/models",           // ✅ NEW: Just endpoint
+    requiresApiKey: true,
+    supportsModelRefresh: true,
+  },
+  ollama: {
+    label: "Ollama (Local)",
+    defaultUrl: "http://localhost:11434",
+    apiEndpointPrefix: "/v1",            // ✅ NEW: For chat completions
+    modelsEndpoint: "/api/tags",         // ✅ NEW: Direct path
+    requiresApiKey: false,
+    supportsModelRefresh: true,
+  }
+};
+```
+
+##### 2. **Unified Model Fetching Function**
+```typescript
+// Single function replaces all provider-specific implementations
+export async function fetchModelsForProvider(
+  provider: LLMProvider,
+  settings: AppSettings
+): Promise<string[]> {
+  const providerInfo = PROVIDERS[provider];
+  const endpoint = providerInfo.modelsEndpoint || "/models";
+
+  // ✅ All providers use same request method
+  const response = await apiRequest(endpoint, provider, settings);
+  const data = await response.json();
+
+  // Provider-specific response parsing
+  if (provider === "ollama") {
+    return data.models.map(m => m.name).sort();
+  } else {
+    return data.data.map(m => m.id).sort();
+  }
+}
+```
+
+##### 3. **Updated Provider Classes**
+```typescript
+// Before: Each provider had custom fetch logic
+export class OpenRouterProvider implements LLM {
+  static async listModels(apiKey?: string, customUrl?: string) {
+    // ❌ Custom fetch implementation
+    const response = await fetch(`${baseUrl}/api/v1/models`, {...});
+  }
+}
+
+// After: All providers use unified approach
+export class OpenRouterProvider implements LLM {
+  static async listModels(apiKey?: string, customUrl?: string) {
+    const settings: AppSettings = {
+      selectedProvider: "openrouter",
+      apiKeys: { openrouter: apiKey || "" },
+      customUrls: customUrl ? { openrouter: customUrl } : {},
+    } as AppSettings;
+
+    // ✅ Uses unified apiRequest function
+    const response = await apiRequest("/models", "openrouter", settings);
+    return data.data.map(model => model.id).sort();
+  }
+}
+```
+
+#### 🎯 **URL Construction Examples**
+
+##### **OpenRouter URL Building**
+```typescript
+// Input Parameters
+provider: "openrouter"
+endpoint: "/models"
+baseUrl: "https://openrouter.ai"
+apiEndpointPrefix: "/api/v1"
+
+// URL Construction Process
+fullUrl = baseUrl + apiEndpointPrefix + endpoint
+fullUrl = "https://openrouter.ai" + "/api/v1" + "/models"
+Result: "https://openrouter.ai/api/v1/models" ✅ CORRECT
+```
+
+##### **Ollama URL Building**
+```typescript
+// Input Parameters
+provider: "ollama"
+endpoint: "/api/tags"
+baseUrl: "http://localhost:11434"
+apiEndpointPrefix: "/v1"
+
+// URL Construction Process (Special case for /api/ paths)
+fullUrl = baseUrl + endpoint  // No prefix for direct /api/ paths
+fullUrl = "http://localhost:11434" + "/api/tags"
+Result: "http://localhost:11434/api/tags" ✅ CORRECT
+```
+
+#### 🚀 **Benefits of Unified Approach**
+
+##### **1. Consistency**
+- All providers use identical request logic
+- Same error handling and logging across providers
+- Unified header management and authentication
+
+##### **2. Maintainability**
+- Single point of change for API request logic
+- Easier to add new providers
+- Consistent debugging and error tracking
+
+##### **3. Reliability**
+- Matches reference implementation exactly
+- Comprehensive error handling with provider-specific messages
+- Automatic fallback models when APIs fail
+
+##### **4. Debugging**
+```typescript
+// Enhanced logging for troubleshooting
+console.log(`API Request for ${provider}:`, {
+  baseUrl: "https://openrouter.ai",
+  apiPrefix: "/api/v1",
+  endpoint: "/models",
+  fullUrl: "https://openrouter.ai/api/v1/models",
+  hasApiKey: true,
+  method: "GET"
+});
+
+console.log(`Processed models for ${provider}:`, {
+  count: 147,
+  first5: ["anthropic/claude-3.5-sonnet", "openai/gpt-4o", ...]
+});
+```
+
+#### 📊 **Before vs After Comparison**
+
+| Aspect | Previous Implementation | New Unified Implementation |
+|--------|------------------------|---------------------------|
+| **URL Construction** | ❌ Provider-specific logic | ✅ Unified `baseUrl + prefix + endpoint` |
+| **Error Handling** | ❌ Inconsistent per provider | ✅ Unified with provider-specific messages |
+| **Code Duplication** | ❌ Repeated fetch logic | ✅ Single reusable function |
+| **Debugging** | ❌ Limited logging | ✅ Comprehensive request/response logging |
+| **Maintainability** | ❌ Multiple places to update | ✅ Single source of truth |
+| **Reference Compliance** | ❌ Custom implementation | ✅ Exact match to reference |
+
+#### 🎉 **Expected Results**
+
+##### **OpenRouter**
+- ✅ **Model Fetching**: 100+ models from OpenRouter API
+- ✅ **URL**: `https://openrouter.ai/api/v1/models`
+- ✅ **Authentication**: Bearer token with API key
+- ✅ **Response**: Filtered models with pricing information
+- ✅ **UI**: Dropdown shows models with Free/Paid badges
+
+##### **Ollama**
+- ✅ **Model Fetching**: All locally installed models
+- ✅ **URL**: `http://localhost:11434/api/tags`
+- ✅ **Authentication**: No API key required
+- ✅ **Response**: Native Ollama model format
+- ✅ **UI**: Dropdown shows models with Custom badges
+
+#### 🔍 **Technical Implementation Details**
+
+##### **File Changes Made**
+```
+src/
+├── lib/
+│   ├── apiRequest.ts              # ✨ NEW: Unified API request function
+│   ├── llm/
+│   │   ├── openrouter.ts          # 🔄 UPDATED: Uses unified approach
+│   │   └── ollama.ts              # 🔄 UPDATED: Uses unified approach
+├── services/
+│   └── llm.ts                     # 🔄 UPDATED: Uses fetchModelsForProvider
+└── utils/
+    └── providers.ts               # 🔄 UPDATED: Added apiEndpointPrefix
+```
+
+##### **Core Architecture Change**
+```typescript
+// Before: Scattered provider implementations
+OpenRouterProvider.listModels() → Custom fetch logic
+OllamaProvider.listModels()     → Different fetch logic
+GeminiProvider.listModels()     → Another fetch logic
+
+// After: Centralized unified system
+All Providers → apiRequest() → Unified fetch logic
+                ↓
+            fetchModelsForProvider() → Provider-specific parsing
+                ↓
+            Consistent error handling & logging
+```

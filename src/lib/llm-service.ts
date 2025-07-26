@@ -1,7 +1,10 @@
 import type { AppSettings, BackgroundRequest } from "../types";
-import { PROVIDERS } from "../utils/providers";
 import { ConfigError } from "./errors";
 import { getLlm } from "./llm";
+import {
+	getProviderErrorMessage,
+	validateProvider,
+} from "./providerValidation";
 
 export function listenForConnections() {
 	chrome.runtime.onConnect.addListener((port) => {
@@ -23,23 +26,31 @@ export function listenForConnections() {
 
 				if (!settings) {
 					throw new ConfigError(
-						"Settings not configured. Please set your API key in the settings.",
+						"Settings not configured. Please configure your AI provider in the extension settings.",
 					);
 				}
 
-				if (!settings.selectedProvider || !settings.model) {
-					throw new ConfigError("LLM provider or model not configured.");
+				if (!settings.selectedProvider) {
+					throw new ConfigError(
+						"No AI provider selected. Please select a provider in settings.",
+					);
 				}
 
-				const provider = PROVIDERS[settings.selectedProvider];
+				// Comprehensive provider validation
+				const validation = validateProvider(
+					settings.selectedProvider,
+					settings,
+				);
+				if (!validation.isValid) {
+					const errorMessage = getProviderErrorMessage(
+						settings.selectedProvider,
+						settings,
+					);
+					throw new ConfigError(errorMessage);
+				}
+
+				// Get provider details
 				const apiKey = settings.apiKeys[settings.selectedProvider];
-
-				// Check if API key is required for this provider
-				if (provider?.requiresApiKey && !apiKey) {
-					throw new ConfigError(`API key is required for ${provider.label}.`);
-				}
-
-				// Get custom URL if available
 				const customUrl = settings.customUrls?.[settings.selectedProvider];
 
 				const llm = getLlm(settings.selectedProvider);

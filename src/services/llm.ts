@@ -1,5 +1,6 @@
-import { getLlmProvider } from "../lib/llm";
+import { fetchModelsForProvider } from "../lib/apiRequest";
 import type {
+	AppSettings,
 	BackgroundRequest,
 	BackgroundResponse,
 	LLMMessage,
@@ -12,8 +13,16 @@ export async function listModels(
 	apiKey?: string,
 	customUrl?: string,
 ) {
-	const providerClass = getLlmProvider(provider);
-	return providerClass.listModels(apiKey, customUrl);
+	// Create a minimal settings object for the unified API request
+	const settings: AppSettings = {
+		selectedProvider: provider,
+		model: "",
+		apiKeys: { [provider]: apiKey || "" },
+		customUrls: customUrl ? { [provider]: customUrl } : {},
+	} as AppSettings;
+
+	// Use the unified API request function
+	return fetchModelsForProvider(provider, settings);
 }
 
 export function streamLlm(

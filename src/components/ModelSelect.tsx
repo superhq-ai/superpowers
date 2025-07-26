@@ -33,7 +33,7 @@ export function ModelSelect({
 			const target = event.target as Node;
 
 			// Check if click is on the button
-			if (buttonRef.current && buttonRef.current.contains(target)) {
+			if (buttonRef.current?.contains(target)) {
 				return;
 			}
 
@@ -88,6 +88,29 @@ export function ModelSelect({
 
 	// Use settings.selectedProvider instead of prop to ensure consistency
 	const currentProvider = settings.selectedProvider;
+
+	// Helper to check if a model is custom
+	const isCustomModel = (model: string) => {
+		const customModels = settings.customModels?.[currentProvider] || [];
+		return customModels.includes(model);
+	};
+
+	// Helper to get model badge info
+	const getModelBadge = (model: string) => {
+		if (isCustomModel(model)) {
+			return { text: "Custom", color: "bg-purple-100 text-purple-700" };
+		}
+
+		if (currentProvider === "openrouter") {
+			if (model.includes(":free") || model.includes("free")) {
+				return { text: "Free", color: "bg-green-100 text-green-700" };
+			} else {
+				return { text: "Paid", color: "bg-blue-100 text-blue-700" };
+			}
+		}
+
+		return null;
+	};
 
 	return (
 		<div className="relative" ref={dropdownRef}>
@@ -146,7 +169,19 @@ export function ModelSelect({
 												: "text-gray-700 hover:bg-gray-50"
 										}`}
 									>
-										<div className="truncate">{model}</div>
+										<div className="flex items-center justify-between">
+											<div className="truncate">{model}</div>
+											{(() => {
+												const badge = getModelBadge(model);
+												return badge ? (
+													<span
+														className={`ml-2 px-1.5 py-0.5 text-xs rounded-full font-medium ${badge.color}`}
+													>
+														{badge.text}
+													</span>
+												) : null;
+											})()}
+										</div>
 									</button>
 								))
 							)}

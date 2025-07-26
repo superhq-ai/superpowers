@@ -1,4 +1,5 @@
-import type { LLMMessage, UseLLMOptions } from "../../types";
+import type { AppSettings, LLMMessage, UseLLMOptions } from "../../types";
+import { apiRequest } from "../apiRequest";
 import { ProviderApiError } from "../errors";
 import type { LLM } from "./index";
 
@@ -7,17 +8,17 @@ export class OllamaProvider implements LLM {
 		_apiKey?: string,
 		customUrl?: string,
 	): Promise<string[]> {
-		const baseUrl = customUrl || "http://localhost:11434";
+		// Create a minimal settings object for the unified API request
+		const settings: AppSettings = {
+			selectedProvider: "ollama",
+			model: "",
+			apiKeys: {},
+			customUrls: customUrl ? { ollama: customUrl } : {},
+		} as AppSettings;
 
 		try {
-			// Use Ollama's native /api/tags endpoint
-			const response = await fetch(`${baseUrl}/api/tags`);
-			if (!response.ok) {
-				throw new Error(
-					`Failed to fetch models from Ollama: ${response.status} ${response.statusText}`,
-				);
-			}
-
+			// Use Ollama's native /api/tags endpoint (not /v1/models)
+			const response = await apiRequest("/api/tags", "ollama", settings);
 			const data = await response.json();
 
 			// Ollama returns: { models: [{ name: "llama3.2:latest", ... }, ...] }

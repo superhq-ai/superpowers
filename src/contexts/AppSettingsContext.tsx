@@ -6,11 +6,13 @@ import {
 	useEffect,
 	useState,
 } from "react";
+import { StorageOptimizer } from "../lib/storageOptimizer";
 import type { AppSettings, LLMProvider } from "../types";
 
 const defaultModels: Record<LLMProvider, string> = {
 	gemini: "gemini-2.0-flash",
 	ollama: "llama3.2:latest",
+	openrouter: "qwen/qwen-2.5-72b-instruct:free",
 };
 
 const defaults: AppSettings = {
@@ -83,8 +85,8 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
 				updatedSettings.model = defaultModels[newSettings.selectedProvider];
 			}
 
-			// Auto-save to Chrome storage
-			chrome.storage.sync.set({ settings: updatedSettings });
+			// Auto-save to Chrome storage with optimization
+			StorageOptimizer.saveSettings(updatedSettings).catch(console.error);
 
 			return updatedSettings;
 		});

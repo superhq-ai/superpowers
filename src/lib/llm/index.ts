@@ -1,6 +1,7 @@
 import type { LLMMessage, LLMProvider, UseLLMOptions } from "../../types";
 import { GeminiProvider } from "./gemini.js";
 import { OllamaProvider } from "./ollama.js";
+import { OpenRouterProvider } from "./openrouter";
 
 export interface LLM {
 	generate(
@@ -23,6 +24,8 @@ export function getLlmProvider(provider: LLMProvider): LLMProviderConstructor {
 			return GeminiProvider;
 		case "ollama":
 			return OllamaProvider;
+		case "openrouter":
+			return OpenRouterProvider;
 		default:
 			throw new Error(`Unknown LLM provider: ${provider}`);
 	}

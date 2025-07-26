@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { StorageOptimizer } from "../lib/storageOptimizer";
 import { listModels } from "../services/llm";
 import type { AppSettings, LLMProvider } from "../types";
 import { PROVIDERS } from "../utils/providers";
@@ -29,36 +30,35 @@ export function useModels(
 		return `${provider}-${customUrl}-${apiKey.slice(0, 8)}`;
 	}, [provider, settings]);
 
-	const getFromCache = useCallback(() => {
+	const getFromCache = useCallback(async () => {
 		const cacheKey = getCacheKey();
-		const cache = settings.modelCache?.[cacheKey];
+		const cache = await StorageOptimizer.getModelCache();
+		const cacheEntry = cache[cacheKey];
 
-		if (cache && Date.now() - cache.timestamp < MODEL_CACHE_DURATION) {
-			return cache.models;
+		if (
+			cacheEntry &&
+			Date.now() - cacheEntry.timestamp < MODEL_CACHE_DURATION
+		) {
+			return cacheEntry.models;
 		}
 		return null;
-	}, [getCacheKey, settings.modelCache]);
+	}, [getCacheKey]);
 
 	const saveToCache = useCallback(
 		async (models: string[]) => {
 			const cacheKey = getCacheKey();
+			const currentCache = await StorageOptimizer.getModelCache();
 			const newCache = {
-				...settings.modelCache,
+				...currentCache,
 				[cacheKey]: {
 					models,
 					timestamp: Date.now(),
 				},
 			};
 
-			// Save to Chrome storage
-			await chrome.storage.sync.set({
-				settings: {
-					...settings,
-					modelCache: newCache,
-				},
-			});
+			await StorageOptimizer.saveModelCache(newCache);
 		},
-		[getCacheKey, settings],
+		[getCacheKey],
 	);
 
 	const refreshModels = useCallback(async () => {
@@ -67,7 +67,7 @@ export function useModels(
 
 		try {
 			// Check cache first
-			const cachedModels = getFromCache();
+			const cachedModels = await getFromCache();
 			if (cachedModels) {
 				setModels(cachedModels);
 				setIsLoading(false);

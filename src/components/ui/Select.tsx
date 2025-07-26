@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 interface Option {
 	value: string;
 	label: string;
+	description?: string;
+	badge?: string;
+	badgeColor?: string;
 }
 
 interface SelectProps {
@@ -159,12 +162,42 @@ const Select = ({
 							aria-selected={index === selectedIndex}
 							tabIndex={index === focusedIndex ? 0 : -1}
 						>
-							<span>{option.label}</span>
-							{option.value === defaultProvider && (
-								<span className="ml-2 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
-									Default
-								</span>
-							)}
+							<div className="flex-1">
+								<span>{option.label}</span>
+								{option.description && (
+									<div className="text-xs text-gray-500 mt-0.5">
+										{option.description}
+									</div>
+								)}
+							</div>
+							<div className="flex items-center gap-1 ml-2">
+								{option.badge && (
+									<span
+										className={`text-xs px-1.5 py-0.5 rounded-full ${
+											option.badgeColor === "green"
+												? "bg-green-100 text-green-700"
+												: option.badgeColor === "blue"
+													? "bg-blue-100 text-blue-700"
+													: option.badgeColor === "purple"
+														? "bg-purple-100 text-purple-700"
+														: option.badge === "Free"
+															? "bg-green-100 text-green-700"
+															: option.badge === "Paid"
+																? "bg-blue-100 text-blue-700"
+																: option.badge === "Custom"
+																	? "bg-purple-100 text-purple-700"
+																	: "bg-gray-100 text-gray-700"
+										}`}
+									>
+										{option.badge}
+									</span>
+								)}
+								{option.value === defaultProvider && (
+									<span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+										Default
+									</span>
+								)}
+							</div>
 						</div>
 					))}
 				</div>

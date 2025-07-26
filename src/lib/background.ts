@@ -3,6 +3,7 @@ import type { BrowserActionResult } from "../types/browser";
 import { browserActions } from "./browser-actions";
 import { fetchLlmsFiles, listenForConnections } from "./llm-service";
 import initSidebar from "./sidebar";
+import { StorageOptimizer } from "./storageOptimizer";
 
 listenForConnections();
 initSidebar();
@@ -59,3 +60,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 		});
 	}
 });
+
+// Initialize storage optimization
+StorageOptimizer.initialize().catch(console.error);

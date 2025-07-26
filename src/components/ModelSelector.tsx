@@ -32,11 +32,45 @@ export default function ModelSelector({
 	} = useModels(provider, settings);
 	const [showCustomInput, setShowCustomInput] = useState(false);
 	const [customModelInput, setCustomModelInput] = useState("");
+	const [searchTerm, setSearchTerm] = useState("");
 
-	const modelOptions = models.map((model) => ({
-		value: model,
-		label: model,
-	}));
+	// Helper function to check if a model is custom
+	const isCustomModel = (model: string) => {
+		const customModels = settings.customModels?.[provider] || [];
+		return customModels.includes(model);
+	};
+
+	// Filter models based on search term
+	const filteredModels = models.filter((model) => {
+		if (!searchTerm) return true;
+		return model.toLowerCase().includes(searchTerm.toLowerCase());
+	});
+
+	const modelOptions = filteredModels.map((model) => {
+		const isCustom = isCustomModel(model);
+		let badge: string | undefined;
+		let badgeColor: string | undefined;
+
+		if (isCustom) {
+			badge = "Custom";
+			badgeColor = "purple";
+		} else if (provider === "openrouter") {
+			if (model.includes(":free") || model.includes("free")) {
+				badge = "Free";
+				badgeColor = "green";
+			} else {
+				badge = "Paid";
+				badgeColor = "blue";
+			}
+		}
+
+		return {
+			value: model,
+			label: model,
+			badge,
+			badgeColor,
+		};
+	});
 
 	const handleAddCustomModel = async () => {
 		if (!customModelInput.trim()) return;
@@ -52,11 +86,6 @@ export default function ModelSelector({
 		if (selectedModel === model && models.length > 0) {
 			onModelChange(models[0]);
 		}
-	};
-
-	const isCustomModel = (model: string) => {
-		const customModels = settings.customModels?.[provider] || [];
-		return customModels.includes(model);
 	};
 
 	const providerInfo = PROVIDERS[provider];
@@ -108,6 +137,17 @@ export default function ModelSelector({
 			)}
 
 			<div className="space-y-2">
+				{/* Search bar for OpenRouter models */}
+				{provider === "openrouter" && models.length > 0 && (
+					<Input
+						label=""
+						value={searchTerm}
+						onChange={(e) => setSearchTerm(e.target.value)}
+						placeholder="Search models... (e.g., 'gpt', 'claude', 'free')"
+						className="text-sm"
+					/>
+				)}
+
 				<Select
 					options={modelOptions}
 					value={selectedModel}
@@ -115,6 +155,13 @@ export default function ModelSelector({
 					disabled={isLoading}
 					placeholder={isLoading ? "Loading models..." : "Select a model"}
 				/>
+
+				{/* Show filtered count for OpenRouter */}
+				{provider === "openrouter" && searchTerm && (
+					<div className="text-xs text-gray-500">
+						Showing {filteredModels.length} of {models.length} models
+					</div>
+				)}
 
 				{showAddCustomButton && showCustomInput && (
 					<div className="flex gap-2">

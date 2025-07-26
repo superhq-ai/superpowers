@@ -5,6 +5,7 @@ import { useAppSettings } from "../contexts/AppSettingsContext";
 import usePastedFiles, { AcceptedFileType } from "../hooks/usePastedFiles";
 import useScreenshot from "../hooks/useScreenshot";
 import { PROMPTS } from "../lib/prompts";
+import { CommandSuggestions } from "./CommandSuggestions";
 import { ModelSelect } from "./ModelSelect";
 import Portal from "./Portal";
 import SlashCommands from "./SlashCommands";
@@ -25,6 +26,7 @@ const PromptBox = ({
 	const { settings, setSettings } = useAppSettings();
 	const [showSlashCommands, setShowSlashCommands] = useState(false);
 	const [selectedCommandIndex, setSelectedCommandIndex] = useState(0);
+	const [showModelSuggestions, setShowModelSuggestions] = useState(false);
 	const {
 		files: images,
 		fileInputRef,
@@ -64,11 +66,18 @@ const PromptBox = ({
 		const value = e.target.value;
 		setPrompt(value);
 
-		if (value.startsWith("/")) {
+		// Check for model command suggestions
+		if (value.startsWith("/model ")) {
+			setShowModelSuggestions(true);
+			setShowSlashCommands(false);
+		} else if (value.startsWith("/") && !value.includes(" ")) {
+			// Show slash commands if user types "/" without space
 			setShowSlashCommands(true);
+			setShowModelSuggestions(false);
 			setSelectedCommandIndex(0); // Reset selection when showing commands
 		} else {
 			setShowSlashCommands(false);
+			setShowModelSuggestions(false);
 		}
 
 		if (textareaRef.current) {
@@ -87,6 +96,18 @@ const PromptBox = ({
 		setPrompt(`/${command} `);
 		setShowSlashCommands(false);
 		setSelectedCommandIndex(0);
+		textareaRef.current?.focus();
+	};
+
+	const handleModelSuggestionSelect = (suggestion: string) => {
+		if (suggestion === "") {
+			// Close suggestions
+			setShowModelSuggestions(false);
+		} else {
+			// Set the selected model command
+			setPrompt(suggestion);
+			setShowModelSuggestions(false);
+		}
 		textareaRef.current?.focus();
 	};
 
@@ -166,6 +187,15 @@ const PromptBox = ({
 						/>
 					</Portal>
 				)}
+
+				{/* Model command suggestions */}
+				<CommandSuggestions
+					inputValue={prompt}
+					inputRef={textareaRef}
+					onSuggestionSelect={handleModelSuggestionSelect}
+					settings={settings}
+					isVisible={showModelSuggestions}
+				/>
 				{images.length > 0 && (
 					<div className="flex gap-2 mb-2 pt-2 overflow-x-auto">
 						{images.map((img) => (
