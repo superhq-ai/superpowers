@@ -25,7 +25,7 @@ export const useAgent = (
 	const runAgent = async (
 		history: AgentMessage[],
 		llmOptions: UseLLMOptions,
-		context?: any,
+		context?: unknown,
 	) => {
 		if (isLoading) return;
 

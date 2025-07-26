@@ -25,6 +25,7 @@ export function useTestLlm() {
 					provider,
 					model: settings.model,
 					apiKey: settings.apiKeys[provider],
+					customUrl: settings.customUrls?.[provider],
 				},
 			);
 

@@ -198,7 +198,7 @@ const simulateKeyPress = (
 
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
 	const { type, data } = request;
-	let result: any;
+	let result: unknown;
 
 	switch (type) {
 		case "getPageContent":

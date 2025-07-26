@@ -18,13 +18,13 @@ export interface Tool {
 export interface ToolCall {
 	id: string;
 	name: string;
-	arguments: Record<string, any>;
+	arguments: Record<string, unknown>;
 }
 
 export interface ToolResult {
 	id: string;
 	name: string;
-	result: any;
+	result: unknown;
 	error?: string;
 }
 

@@ -10,7 +10,7 @@ initSidebar();
 function handleRuntimeMessage(
 	request: { type: string; data?: any; tabId?: number },
 	_sender: chrome.runtime.MessageSender,
-	sendResponse: (response?: any) => void,
+	sendResponse: (response?: unknown) => void,
 ): boolean {
 	const { type, data } = request;
 	const action = browserActions[type as keyof typeof browserActions];

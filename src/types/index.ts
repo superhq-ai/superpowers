@@ -9,7 +9,7 @@ export type Message = {
 	attachments?: Attachment[];
 };
 
-export type LLMProvider = "gemini";
+export type LLMProvider = "gemini" | "ollama";
 
 export type LLMMessage = {
 	role: "user" | "assistant" | "system" | "tool";
@@ -28,6 +28,7 @@ export interface UseLLMOptions {
 	maxTokens?: number;
 	topP?: number;
 	apiKey?: string;
+	customUrl?: string;
 }
 
 export type LLMApiKeys = { [key in LLMProvider]?: string };
@@ -56,4 +57,7 @@ export interface AppSettings {
 	model: string;
 	defaultProvider?: LLMProvider;
 	developerMode?: boolean;
+	customUrls?: { [key in LLMProvider]?: string };
+	customModels?: { [key in LLMProvider]?: string[] };
+	modelCache?: { [key: string]: { models: string[]; timestamp: number } };
 }

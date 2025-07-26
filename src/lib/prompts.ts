@@ -53,4 +53,36 @@ export const PROMPTS: Prompt[] = [
 			];
 		},
 	},
+	{
+		name: "test",
+		description: "Test the AI connection",
+		llmTrigger: true,
+		getMessages: async () => {
+			return [
+				{
+					id: crypto.randomUUID(),
+					role: "user",
+					content:
+						"Hello! Please introduce yourself briefly and confirm you're working correctly.",
+				},
+			];
+		},
+	},
+	{
+		name: "model",
+		description: "Switch AI model or show available models",
+		llmTrigger: false,
+		arguments: [
+			{
+				name: "action",
+				description:
+					"Model name to switch to, or 'list' to show available models",
+				required: false,
+			},
+		],
+		getMessages: async () => {
+			// This command doesn't generate LLM messages - it's handled in the UI
+			return [];
+		},
+	},
 ];

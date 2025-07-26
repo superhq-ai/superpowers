@@ -9,16 +9,17 @@ import { ProviderApiError } from "../errors";
 import type { LLM } from "./index";
 
 export class GeminiProvider implements LLM {
-	// TODO: Replace this with an actual API call to list available models
-	static async listModels(): Promise<string[]> {
+	// Gemini models are predefined - no need for API calls
+	static async listModels(
+		_apiKey?: string,
+		_customUrl?: string,
+	): Promise<string[]> {
 		return Promise.resolve([
 			"gemini-2.0-flash",
 			"gemini-1.5-flash-latest",
+			"gemini-1.5-flash-8b-latest",
 			"gemini-1.5-pro-latest",
-			"gemini-2.5-pro",
-			"gemini-2.5-flash",
-			"gemini-2.5-flash-lite",
-			"gemini-1.0-pro",
+			"gemini-1.0-pro-latest",
 		]);
 	}
 
@@ -27,6 +28,7 @@ export class GeminiProvider implements LLM {
 		options: UseLLMOptions,
 		apiKey: string,
 		signal?: AbortSignal,
+		_customUrl?: string,
 	): AsyncGenerator<string> {
 		const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -100,7 +102,7 @@ export class GeminiProvider implements LLM {
 							.find((tc) => tc.id === toolMessage.tool_call_id);
 
 						if (originalCall) {
-							let responsePayload: any;
+							let responsePayload: Record<string, unknown>;
 							try {
 								responsePayload = JSON.parse(toolMessage.content);
 							} catch {

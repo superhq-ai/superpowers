@@ -1,4 +1,5 @@
 import type { AppSettings, BackgroundRequest } from "../types";
+import { PROVIDERS } from "../utils/providers";
 import { ConfigError } from "./errors";
 import { getLlm } from "./llm";
 
@@ -30,18 +31,24 @@ export function listenForConnections() {
 					throw new ConfigError("LLM provider or model not configured.");
 				}
 
+				const provider = PROVIDERS[settings.selectedProvider];
 				const apiKey = settings.apiKeys[settings.selectedProvider];
 
-				if (!apiKey) {
-					throw new ConfigError("API key not found for the selected provider.");
+				// Check if API key is required for this provider
+				if (provider?.requiresApiKey && !apiKey) {
+					throw new ConfigError(`API key is required for ${provider.label}.`);
 				}
+
+				// Get custom URL if available
+				const customUrl = settings.customUrls?.[settings.selectedProvider];
 
 				const llm = getLlm(settings.selectedProvider);
 				const stream = llm.generate(
 					messages,
 					options,
-					apiKey,
+					apiKey || "",
 					abortController.signal,
+					customUrl,
 				);
 
 				for await (const chunk of stream) {
